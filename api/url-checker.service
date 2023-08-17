@@ -1,0 +1,19 @@
+[Unit]
+Description=URL Checker
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/pnpm start
+WorkingDirectory=/srv/http/url-checker.example.com/url-checker/api
+
+User=url-checker
+Group=url-checker
+
+StandardOutput=syslog
+StandardError=syslog
+Restart=always
+RestartSec=10
+SyslogIdentifier=url-checker
+
+[Install]
+WantedBy=multi-user.target

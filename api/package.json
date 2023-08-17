@@ -1,0 +1,47 @@
+{
+  "name": "url-checker",
+  "version": "1.0.0",
+  "description": "URL Checker API",
+  "main": "src",
+  "type": "module",
+  "engines": {
+    "node": ">=18.12.0",
+    "pnpm": ">=8.0.0"
+  },
+  "repository": "https://git.leguidedupatrimoine.com/leguidedupatrimoine/url-checker",
+  "author": "Le Guide du Patrimoine",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "node -r dotenv/config --watch src dotenv_config_path=.env.development",
+    "start": "NODE_ENV=production node -r dotenv/config src dotenv_config_path=.env.production",
+    "lint": "eslint . --ext .js,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-node": "^4.1.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.1.1"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.9.5",
+    "@as-integrations/koa": "^1.1.1",
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^12.0.1",
+    "domutils": "^3.1.0",
+    "dotenv": "^16.3.1",
+    "graphql": "^16.8.1",
+    "graphql-parse-resolve-info": "^4.13.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-ws": "^5.14.2",
+    "htmlparser2": "^9.0.0",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.1",
+    "sequelize": "^6.35.2",
+    "sqlite3": "^5.1.6",
+    "ws": "^8.15.1"
+  }
+}

@@ -1,0 +1,5 @@
+#!/bin/bash
+# This is a workaround for this issue:
+# https://github.com/curl/curl/issues/6905
+
+curl $@ | sed 's/":000,"/":0,"/g'
