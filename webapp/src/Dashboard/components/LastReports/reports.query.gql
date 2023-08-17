@@ -1,0 +1,21 @@
+query {
+  reports(sort: { by: createdAt, order: DESC }, page: { current: 1 }) {
+    entries {
+      id
+      createdAt
+      http1xxCount
+      http2xxCount
+      http3xxCount
+      http4xxCount
+      http5xxCount
+      totalCount
+      processedCount
+      status
+      errorReason
+      website {
+        host
+        faviconUrl
+      }
+    }
+  }
+}

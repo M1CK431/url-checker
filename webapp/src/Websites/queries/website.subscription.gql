@@ -1,0 +1,19 @@
+subscription {
+  website {
+    operation
+    data {
+      host
+      faviconUrl
+      updatedAt
+      reports(page: { current: 1, size: 1 }) {
+        totalCount
+        entries {
+          id
+          http5xxCount
+          http4xxCount
+          totalCount
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* prevent TW to overrides naive-ui btn style */
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  background-color: var(--n-color);
+}

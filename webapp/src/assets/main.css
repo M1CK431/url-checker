@@ -1,0 +1,67 @@
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/Poppins-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+a:hover {
+  @apply underline;
+}
+
+/* custom scrollbar */
+div {
+  /* Mozilla firefox */
+  scrollbar-color: theme(colors.slate.700) transparent;
+}
+
+/* Global */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Ascenseur */
+::-webkit-scrollbar-thumb {
+  border: solid 2px transparent;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 10px 10px #334155;
+}

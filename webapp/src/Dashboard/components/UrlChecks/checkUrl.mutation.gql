@@ -1,0 +1,12 @@
+mutation CheckUrl($url: String!) {
+  checkUrl(url: $url) {
+    url
+    updatedAt
+    responseCode
+    redirectUrl
+    size
+    duration
+    status
+    errorReason
+  }
+}

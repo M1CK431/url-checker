@@ -1,0 +1,24 @@
+query ($id: ID!) {
+  report(id: $id) {
+    id
+    url
+    createdAt
+    processedCount
+    totalCount
+    status
+    duration
+    website {
+      host
+      faviconUrl
+      reports {
+        totalCount
+      }
+    }
+    errorReason
+    http1xxCount
+    http2xxCount
+    http3xxCount
+    http4xxCount
+    http5xxCount
+  }
+}

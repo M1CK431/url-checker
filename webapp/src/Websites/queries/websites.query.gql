@@ -1,0 +1,19 @@
+query ($search: String, $sort: WebsiteSort, $page: PageInput!) {
+  websites(search: $search, sort: $sort, page: $page) {
+    totalCount
+    entries {
+      host
+      faviconUrl
+      updatedAt
+      reports(page: { current: 1, size: 1 }) {
+        totalCount
+        entries {
+          id
+          http5xxCount
+          http4xxCount
+          totalCount
+        }
+      }
+    }
+  }
+}

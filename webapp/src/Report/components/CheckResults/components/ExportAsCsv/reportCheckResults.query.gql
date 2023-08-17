@@ -1,0 +1,20 @@
+query Report($id: ID!) {
+  report(id: $id) {
+    id
+    createdAt
+    url
+    checkResults {
+      totalCount
+      entries {
+        url
+        createdAt
+        responseCode
+        redirectUrl
+        size
+        duration
+        status
+        errorReason
+      }
+    }
+  }
+}

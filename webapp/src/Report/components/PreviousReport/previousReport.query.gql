@@ -1,0 +1,18 @@
+query ($host: String!, $url: String!, $before: DateTime!) {
+  website(host: $host) {
+    host
+    reports(
+      filters: { url: $url, updatedAt: { end: $before } }
+      sort: { by: updatedAt, order: DESC }
+      page: { current: 1, size: 1 }
+    ) {
+      entries {
+        id
+        totalCount
+        http3xxCount
+        http4xxCount
+        http5xxCount
+      }
+    }
+  }
+}

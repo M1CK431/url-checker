@@ -1,0 +1,24 @@
+query Report(
+  $id: ID!
+  $sort: CheckResultSort
+  $filters: CheckResultFilters
+  $search: String
+  $page: PageInput!
+) {
+  report(id: $id) {
+    id
+    checkResults(search: $search, sort: $sort, page: $page, filters: $filters) {
+      totalCount
+      entries {
+        url
+        updatedAt
+        responseCode
+        redirectUrl
+        size
+        duration
+        status
+        errorReason
+      }
+    }
+  }
+}

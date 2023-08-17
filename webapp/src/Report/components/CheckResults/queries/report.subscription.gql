@@ -1,0 +1,9 @@
+subscription ($id: ID!) {
+  report(id: $id) {
+    operation
+    data {
+      id
+      status
+    }
+  }
+}

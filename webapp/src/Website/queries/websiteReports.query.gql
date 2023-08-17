@@ -1,0 +1,32 @@
+query (
+  $host: String!
+  $sort: ReportSort!
+  $page: Int!
+  $search: String
+  $filters: ReportFilters
+) {
+  website(host: $host) {
+    host
+    reports(
+      sort: $sort
+      page: { current: $page, size: 20 }
+      search: $search
+      filters: $filters
+    ) {
+      totalCount
+      entries {
+        id
+        createdAt
+        http1xxCount
+        http2xxCount
+        http3xxCount
+        http4xxCount
+        http5xxCount
+        totalCount
+        processedCount
+        status
+        errorReason
+      }
+    }
+  }
+}
