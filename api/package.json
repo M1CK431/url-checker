@@ -10,7 +10,7 @@
   },
   "repository": "https://git.leguidedupatrimoine.com/leguidedupatrimoine/url-checker",
   "author": "Le Guide du Patrimoine",
-  "license": "UNLICENSED",
+  "license": "GPLv3+ +Commons Clause",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
