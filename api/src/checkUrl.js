@@ -1,12 +1,14 @@
 import { exec } from "node:child_process";
-import { db } from "./db.js";
+import { ReportDbModel } from "./models/report/report.js";
+import { CheckResultDbModel } from "./models/checkResult/checkResult.js";
+import pubSub from "./pubSub.js";
 
 const { CURL = "curl" } = process.env;
 
 // Si t'as pas d'ami...
 const curly = (url, cb) =>
   exec(
-    `${CURL} -s -w '%{json}' -o /dev/null '${url.replace(/'/g, `'"'"'`)}'`,
+    `${CURL} -s -w '%{json}' -o /dev/null '${url.replace(/'/g, "'\"'\"'")}'`,
     cb
   );
 
@@ -23,27 +25,25 @@ export const checkURLSync = url =>
         time_total
       } = JSON.parse(stdout || "{}");
 
-      if (err)
-        return resolve({
-          url,
-          createdAt,
-          updatedAt: createdAt,
-          responseCode: 0,
-          size: 0,
-          duration: 0,
-          status: "ERROR",
-          errorReason: errormsg || err.toString()
-        });
-
       resolve({
         url,
         createdAt,
         updatedAt: createdAt,
-        responseCode: response_code,
-        ...(redirect_url && { redirectUrl: redirect_url }),
-        size: size_download,
-        duration: time_total,
-        status: "DONE"
+        ...err
+          ? {
+              responseCode: 0,
+              size: 0,
+              duration: 0,
+              status: "ERROR",
+              errorReason: errormsg || err.toString()
+            }
+          : {
+              responseCode: response_code,
+              ...redirect_url && { redirectUrl: redirect_url },
+              size: size_download,
+              duration: time_total,
+              status: "DONE"
+            }
       });
     });
   });
@@ -54,87 +54,93 @@ const redirectLimiter = (limit = REDIRECT_LIMIT) => {
   return () => ++cnt > limit;
 };
 
+const updateReportDbModel = (id, data) => ReportDbModel
+  .update({ data, where: { id } })
+  .then(() =>
+    pubSub.publish("report", { operation: "UPDATE", primaryKey: id }));
+
 export const checkUrl = (
-  checkUrlDb,
+  { id, url, reportId },
   checkRedirectLimit = redirectLimiter()
-) => {
-  const { url, ReportId } = checkUrlDb;
-  const { CheckResult: CheckResultDbModel, Report: ReportDbModel } = db.models;
+) => new Promise(resolve =>
+  curly(url, async (err, stdout) => {
+    const {
+      errormsg,
+      response_code,
+      redirect_url,
+      size_download,
+      time_total
+    } = JSON.parse(stdout || "{}");
 
-  return new Promise(resolve =>
-    curly(url, async (err, stdout) => {
-      const {
-        errormsg,
-        response_code,
-        redirect_url,
-        size_download,
-        time_total
-      } = JSON.parse(stdout || "{}");
+    if (err) {
+      const checkResult = CheckResultDbModel.update({
+        data: { status: "ERROR", errorReason: errormsg || err.toString() },
+        where: { id }
+      });
 
-      if (err) {
-        checkUrlDb.update({
-          status: "ERROR",
-          errorReason: errormsg || err.toString()
-        });
-        ReportDbModel.increment("processedCount", { where: { id: ReportId } });
-        return resolve(checkUrlDb);
-      }
+      await updateReportDbModel(reportId, { processedCount: { increment: 1 } });
 
-      checkUrlDb.update({
+      return resolve(checkResult);
+    }
+
+    const checkResult = CheckResultDbModel.update({
+      data: {
         responseCode: response_code,
-        ...(redirect_url && { redirectUrl: redirect_url }),
+        ...redirect_url && { redirectUrl: redirect_url },
         size: size_download,
         duration: time_total,
         status: "DONE"
-      });
-      ReportDbModel.increment(
-        ["processedCount", `http${`${response_code}`[0]}xxCount`],
-        { where: { id: ReportId } }
-      );
+      },
+      where: { id }
+    });
 
-      if (!redirect_url) return resolve(checkUrlDb);
+    await updateReportDbModel(reportId, {
+      processedCount: { increment: 1 },
+      [`http${`${response_code}`[0]}xxCount`]: { increment: 1 }
+    });
 
-      if (
-        await CheckResultDbModel.count({
-          where: { url: redirect_url, ReportId }
-        })
-      )
-        return resolve(checkUrlDb);
+    if (!redirect_url) return resolve(checkResult);
 
-      ReportDbModel.increment("totalCount", { where: { id: ReportId } });
+    if (
+      await CheckResultDbModel.count({ where: { url: redirect_url, reportId } })
+    )
+      return resolve(checkResult);
 
-      if (checkRedirectLimit()) {
-        ReportDbModel.increment("processedCount", { where: { id: ReportId } });
+    await updateReportDbModel(reportId, { totalCount: { increment: 1 } });
 
-        return resolve(
-          CheckResultDbModel.create({
+    if (checkRedirectLimit()) {
+      await updateReportDbModel(reportId, { processedCount: { increment: 1 } });
+
+      return resolve(
+        CheckResultDbModel.create({
+          data: {
             url: redirect_url,
-            ReportId,
+            reportId,
             status: "ERROR",
             errorReason: "Redirection limit reached"
-          })
-        );
-      }
+          }
+        })
+      );
+    }
 
-      if (new URL(url).host !== new URL(redirect_url).host) {
-        ReportDbModel.increment("processedCount", { where: { id: ReportId } });
+    if (new URL(url).host !== new URL(redirect_url).host) {
+      await updateReportDbModel(reportId, { processedCount: { increment: 1 } });
 
-        return resolve(
-          CheckResultDbModel.create({
+      return resolve(
+        CheckResultDbModel.create({
+          data: {
             url: redirect_url,
-            ReportId,
+            reportId,
             status: "ERROR",
             errorReason: "Redirect URL is not on the same host"
-          })
-        );
-      }
+          }
+        })
+      );
+    }
 
-      const redirectCheckResult = CheckResultDbModel.create({
-        url: redirect_url,
-        ReportId
-      }).then(checkUrlDb => checkUrl(checkUrlDb, checkRedirectLimit));
+    const redirectCheckResult = CheckResultDbModel.create({
+      data: { url: redirect_url, reportId }
+    }).then(checkResult => checkUrl(checkResult, checkRedirectLimit));
 
-      resolve(redirectCheckResult);
-    })
-  );
-};
+    resolve(redirectCheckResult);
+  }));

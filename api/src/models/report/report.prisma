@@ -1,0 +1,30 @@
+enum ReportStatus {
+  PROCESSING
+  ERROR
+  DONE
+  DELETED
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  url       String // @db.VarChar(2083)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  http5xxCount Int @default(0)
+  http4xxCount Int @default(0)
+  http3xxCount Int @default(0)
+  http2xxCount Int @default(0)
+  http1xxCount Int @default(0)
+
+  processedCount Int @default(0)
+  totalCount     Int @default(0)
+  duration       Int @default(0) // unit: ms
+
+  status      ReportStatus @default(PROCESSING)
+  errorReason String?
+
+  websiteHost  String // @db.VarChar(260)
+  website      Website       @relation(fields: [websiteHost], references: [host], onDelete: Cascade)
+  checkResults CheckResult[]
+}

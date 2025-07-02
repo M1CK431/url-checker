@@ -1,0 +1,22 @@
+enum CheckStatusEnum {
+  PROCESSING
+  ERROR
+  DONE
+}
+
+model CheckResult {
+  id        Int      @id @default(autoincrement())
+  url       String // @db.VarChar(2083)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responseCode Int?
+  redirectUrl  String? // @db.VarChar(2083)
+  size         Int             @default(0)
+  status       CheckStatusEnum @default(PROCESSING)
+  errorReason  String?
+  duration     Float           @default(0)
+
+  reportId Int
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
