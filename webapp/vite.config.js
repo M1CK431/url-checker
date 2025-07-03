@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from "node:url";
-
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import graphql from "@rollup/plugin-graphql";
@@ -9,13 +8,15 @@ import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
 
+import { disableFragmentWarnings } from "graphql-tag";
+disableFragmentWarnings();
+
 import dns from "dns";
 dns.setDefaultResultOrder("verbatim");
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: { port: 8080 },
-  build: { target: "es2022" },
   plugins: [
     vue(),
     graphql(),
