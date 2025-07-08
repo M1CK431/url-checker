@@ -15,12 +15,12 @@
     <ResponseCodeTypeFilter
       v-model="filters.responseCode"
       @update:modelValue="page.current = 1"
-      :report-id="reportId"
+      :reportId="reportId"
     />
 
     <Card>
       <div class="text-right mb-1">
-        <ExportAsCsv :report-id="reportId" />
+        <ExportAsCsv :reportId="reportId" />
       </div>
 
       <Table
@@ -94,7 +94,7 @@
         </template>
 
         <template #status="{ status, row: { errorReason } }">
-          <Status :status="status" :error-reason="errorReason" />
+          <Status :status="status" :errorReason="errorReason" />
         </template>
 
         <template #actions="{ row }">
@@ -114,9 +114,9 @@
       <div class="mt-4 flex justify-center">
         <NPagination
           v-model:page="page.current"
-          :item-count="totalCount"
-          :page-sizes="[10, 20, 30, 40, 50]"
-          show-size-picker
+          :itemCount="totalCount"
+          :pageSizes="[10, 20, 30, 40, 50]"
+          showSizePicker
           v-model:pageSize="page.size"
           @update:pageSize="page.current = 1"
           class="[&_.n-pagination-item]:font-semibold"
@@ -143,11 +143,11 @@ import ResponseCodeTypeFilter from "./components/ResponseCodeTypeFilter.vue";
 import RecheckUrl from "./components/RecheckUrl.vue";
 
 function Filters() {
-  return { responseCode: null };
+  return { responseCode: undefined };
 }
 
 function Sort() {
-  return { by: "url", order: "ASC" };
+  return { by: "url", order: "asc" };
 }
 
 export default {
@@ -219,7 +219,15 @@ export default {
       variables() {
         const { reportId, page, sort, debouncedSearch, filters } = this;
 
-        return { id: reportId, page, sort, search: debouncedSearch, filters };
+        return {
+          id: reportId,
+          page,
+          sort,
+          filters: {
+            ...filters,
+            ...(debouncedSearch && { url: { contains: debouncedSearch } })
+          }
+        };
       },
       update({ report: { checkResults: { totalCount, entries } = {} } }) {
         this.totalCount = totalCount;

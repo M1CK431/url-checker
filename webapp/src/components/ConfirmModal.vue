@@ -1,13 +1,13 @@
 <template>
-  <NConfigProvider :theme-overrides="{ Dialog: { color: 'none' } }">
+  <NConfigProvider :themeOverrides="{ Dialog: { color: 'none' } }">
     <NModal
       v-bind="$attrs"
       preset="dialog"
-      :show-icon="false"
+      :showIcon="false"
       :closable="false"
-      :positive-text="$t('CONFIRM')"
-      :negative-button-props="{ text: true, class: '!mr-8' }"
-      :negative-text="$t('CANCEL')"
+      :positiveText="$t('CONFIRM')"
+      :negativeButtonProps="{ text: true, class: '!mr-8' }"
+      :negativeText="$t('CANCEL')"
       class="!w-96 rounded-xl bg-gradient-to-br from-white/90 to-white/70"
     >
       <div class="font-semibold mb-6">

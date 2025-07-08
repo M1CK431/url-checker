@@ -1,12 +1,12 @@
 <template>
   <NDrawer
     placement="bottom"
-    :default-height="144"
+    :defaultHeight="144"
     class="recheck-url-drawer"
-    content-style="padding: 1rem; overflow: hidden"
+    contentStyle="padding: 1rem; overflow: hidden"
     :show="!!url"
     @update:show="$emit('update:url', '')"
-    :theme-overrides="{ color: 'none' }"
+    :themeOverrides="{ color: 'none' }"
   >
     <UrlChecksTable :rows="[checkResult]" @recheck="recheckUrl" />
   </NDrawer>
@@ -44,7 +44,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation CheckUrl($url: String!) {
+            mutation CheckUrl($url: URL!) {
               checkUrl(url: $url) {
                 url
                 updatedAt

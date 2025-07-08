@@ -1,5 +1,9 @@
-query ($search: String, $sort: WebsiteSort, $page: PageInput!) {
-  websites(search: $search, sort: $sort, page: $page) {
+query (
+  $filters: WebsiteFiltersInput
+  $sort: WebsiteSortInput
+  $page: PageInput!
+) {
+  websites(filters: $filters, sort: $sort, page: $page) {
     totalCount
     entries {
       host

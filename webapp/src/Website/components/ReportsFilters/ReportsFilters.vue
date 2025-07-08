@@ -15,12 +15,17 @@
 
     <div class="flex gap-4 mb-4">
       <NDatePicker
-        :value="filters.updatedAt"
-        @update:value="handleFiltersChange('updatedAt', $event)"
+        :value="filters.updatedAt && filters.updatedAt.map(d => +d)"
+        @update:value="
+          handleFiltersChange(
+            'updatedAt',
+            $event && $event.map(ts => new Date(ts))
+          )
+        "
         clearable
         type="daterange"
         :actions="null"
-        close-on-select
+        closeOnSelect
         class="w-1/4"
       />
 
@@ -36,7 +41,7 @@
         @update:value="handleFiltersChange(key, $event)"
         :max="defaultFilters[key][1]"
         :description="getFilterRangeDescription(key)"
-        :select-props="{
+        :selectProps="{
           placeholder,
           class: 'w-1/4',
           onClear: () => resetFilters(key)

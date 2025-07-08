@@ -10,7 +10,7 @@
         v-bind="selectProps"
         :value="description ? 1 : null"
         :options="[{ label: description, value: 1 }]"
-        :render-label="renderLabel"
+        :renderLabel
         :show="false"
         clearable
         @focus="show = true"

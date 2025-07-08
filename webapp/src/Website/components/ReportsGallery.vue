@@ -22,8 +22,8 @@
         :value="sort.order"
         @update:value="$emit('update:sort', { ...sort, order: $event })"
         :options="[
-          { label: $t('ASCENDING'), value: 'ASC' },
-          { label: $t('DESCENDING'), value: 'DESC' }
+          { label: $t('ASCENDING'), value: 'asc' },
+          { label: $t('DESCENDING'), value: 'desc' }
         ]"
         size="small"
       />
@@ -68,7 +68,7 @@ import { Loader, ReportCard, BulkActions } from "@/components";
 import DeleteReports from "@/Report/components/DeleteReports.vue";
 
 export function Sort() {
-  return { by: "updatedAt", order: "DESC" };
+  return { by: "updatedAt", order: "desc" };
 }
 
 export default {

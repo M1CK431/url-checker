@@ -82,14 +82,10 @@ export default {
     website: { type: Object, required: true },
     url: { type: String, required: true },
     status: { type: String, required: true },
-    createdAt: { type: Number, required: true },
-    // eslint-disable-next-line vue/no-unused-properties
+    createdAt: { type: [Number, String, Date], required: true },
     totalCount: { type: Number, required: true },
-    // eslint-disable-next-line vue/no-unused-properties
     http3xxCount: { type: Number, required: true },
-    // eslint-disable-next-line vue/no-unused-properties
     http4xxCount: { type: Number, required: true },
-    // eslint-disable-next-line vue/no-unused-properties
     http5xxCount: { type: Number, required: true }
   },
   data: () => ({ previousReport: null, error: "" }),
@@ -116,11 +112,11 @@ export default {
           [key]: {
             value: $props[key] - previousReport[key],
             get label() {
-              if (!this.value) return $i18n.tc(labelKey, 2);
+              if (!this.value) return $i18n.t(labelKey, 2);
 
               return `${this.value.toLocaleString(undefined, {
                 signDisplay: "exceptZero"
-              })} ${$i18n.tc(labelKey, Math.abs(this.value))}`;
+              })} ${$i18n.t(labelKey, Math.abs(this.value))}`;
             }
           }
         }),

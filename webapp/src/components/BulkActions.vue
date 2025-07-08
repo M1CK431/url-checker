@@ -12,7 +12,7 @@
       </div>
 
       <div class="pr-2.5 border-r border-slate-400">
-        {{ $tc("{N}_SELECTED", modelValue.length) }}
+        {{ $t("{N}_SELECTED", modelValue.length) }}
       </div>
 
       <NButton

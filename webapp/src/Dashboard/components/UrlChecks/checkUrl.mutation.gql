@@ -1,4 +1,4 @@
-mutation CheckUrl($url: String!) {
+mutation CheckUrl($url: URL!) {
   checkUrl(url: $url) {
     url
     updatedAt

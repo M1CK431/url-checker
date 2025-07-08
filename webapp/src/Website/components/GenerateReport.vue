@@ -2,7 +2,7 @@
   <div class="flex">
     <NSelect
       v-model:value="url"
-      :placeholder="$t('SELECT_A_WEBSITE_URL')"
+      :placeholder="$t('SELECT_A_SITEMAP')"
       :options="sitemaps.map(value => ({ label: getPathname(value), value }))"
       :loading="$apollo.loading"
       tag
@@ -32,11 +32,11 @@ import gql from "graphql-tag";
 export default {
   props: { host: { type: String, required: true } },
   setup: () => ({ getPathname }),
-  data: () => ({ sitemaps: [], error: "", url: "", generating: false }),
+  data: () => ({ sitemaps: [], error: "", url: null, generating: false }),
   apollo: {
     sitemaps: {
       query: gql`
-        query ($host: String!) {
+        query ($host: ID!) {
           website(host: $host) {
             host
             sitemaps
@@ -79,7 +79,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
               }
@@ -94,6 +94,12 @@ export default {
         })
         .catch(requestErrorHandler)
         .finally(() => (this.generating = false));
+    }
+  },
+  i18n: {
+    messages: {
+      "en-US": { SELECT_A_SITEMAP: "Select a sitemap" },
+      "fr-FR": { SELECT_A_SITEMAP: "Sélectionner un sitemap" }
     }
   }
 };

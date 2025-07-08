@@ -56,16 +56,16 @@
             <Table
               v-model="selected"
               :rows="websites.entries"
-              :get-key="({ host }) => host"
+              :getKey="({ host }) => host"
               :loading="$apollo.queries.websites.loading"
             />
 
             <div class="mt-4 flex justify-center">
               <NPagination
                 v-model:page="page.current"
-                :item-count="websites.totalCount"
-                :page-sizes="[10, 20, 30, 40, 50]"
-                show-size-picker
+                :itemCount="websites.totalCount"
+                :pageSizes="[10, 20, 30, 40, 50]"
+                showSizePicker
                 v-model:pageSize="page.size"
                 @update:pageSize="page.current = 1"
                 class="[&_.n-pagination-item]:font-semibold"
@@ -100,7 +100,7 @@ export default {
   components: { Card, Error, Loader, Illustration, Table, GenerateReport },
   data: () => ({
     search: "",
-    sort: { by: "updatedAt", order: "DESC" },
+    sort: { by: "updatedAt", order: "desc" },
     websites: { totalCount: 0, entries: [] },
     page: { current: 1, size: 10 },
     reportsCount: 0,
@@ -112,7 +112,11 @@ export default {
     websites: {
       query: websitesQuery,
       variables() {
-        return { search: this.search, sort: this.sort, page: this.page };
+        return {
+          ...(this.search && { filters: { host: { contains: this.search } } }),
+          sort: this.sort,
+          page: this.page
+        };
       },
       error: (err, vm) => (vm.error = err.toString())
     },
