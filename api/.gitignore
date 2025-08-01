@@ -141,3 +141,6 @@ dist
 
 # AI tools
 .aider-desk
+
+# sqlite db files
+db.sqlite*
