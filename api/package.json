@@ -30,9 +30,11 @@
   "dependencies": {
     "@pothos/core": "^4.7.0",
     "@pothos/plugin-prisma": "^4.9.1",
+    "@pothos/plugin-scope-auth": "^4.1.5",
     "@prisma/adapter-better-sqlite3": "^6.11.0",
     "@prisma/client": "^6.11.0",
     "@prisma/generator-helper": "^6.11.0",
+    "bcryptjs": "^3.0.2",
     "better-sqlite3": "^11.10.0",
     "domutils": "^3.2.2",
     "graphql": "^16.11.0",
@@ -40,6 +42,7 @@
     "graphql-ws": "^6.0.5",
     "graphql-yoga": "^5.14.0",
     "htmlparser2": "^10.0.0",
+    "jsonwebtoken": "^9.0.2",
     "prisma": "^6.11.0",
     "ws": "^8.18.3"
   }
