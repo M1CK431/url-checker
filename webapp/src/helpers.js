@@ -15,6 +15,14 @@ export const error = ({ title = t("ERROR"), content, ...rest }) =>
 
 export const requestErrorHandler = err => error({ content: err.toString() });
 
+export const info = ({ title = t("INFO"), content, ...rest } = {}) =>
+  notification.info({
+    title,
+    ...(content && { content: renderContent(content) }),
+    ...notificationOptions,
+    ...rest
+  });
+
 export const success = ({ title = t("SUCCESS"), content, ...rest } = {}) =>
   notification.success({
     title,
@@ -86,8 +94,6 @@ export const isAllowedDomain = url =>
 
 export const getPathname = url => new URL(url).pathname;
 
-export const deepCopy = obj => JSON.parse(JSON.stringify(obj));
-
 export const uniqBy = (arr, predicate) => {
   const cb = typeof predicate === "function" ? predicate : o => o[predicate];
 
@@ -103,3 +109,15 @@ export const uniqBy = (arr, predicate) => {
       .values()
   ];
 };
+
+export const deepCopy = (obj, exclude = []) =>
+  JSON.parse(
+    JSON.stringify(obj, (key, value) =>
+      exclude.includes(key) ? undefined : value
+    )
+  );
+
+export const noTypename = obj => deepCopy(obj, ["__typename"]);
+
+export const getFrom = (obj, keys) =>
+  keys.reduce((acc, k) => ((acc[k] = obj[k]), acc), {});

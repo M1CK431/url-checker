@@ -13,5 +13,12 @@
   "STATUS": "Status",
   "SUCCESS": "Success",
   "TEST_A_WEBSITE": "Test a website",
-  "URL": "URL"
+  "URL": "URL",
+  "IDENTIFIER": "Identifier",
+  "PASSWORD": "Password",
+  "USERS": "Users",
+  "CREATED_AT": "Created at",
+  "LAST_LOGIN": "Last login",
+  "SUICIDAL_IDEATION_REPORTED_TO_IT_SUPPORT_COFFEE_INCOMING": "Suicidal ideation reported to IT support. Coffee incoming ☕",
+  "INFORMATION": "Information"
 }

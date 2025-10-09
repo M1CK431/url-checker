@@ -1,0 +1,30 @@
+fragment UserFields on User {
+  id
+  identifier
+  createdAt
+  lastLogin
+  enabled
+}
+
+query userQuery($id: ID!) {
+  user(id: $id) {
+    ...UserFields
+  }
+}
+
+mutation upsertUserMutation($id: ID, $user: UserInput!) {
+  upsertUser(id: $id, user: $user) {
+    id
+    identifier
+    enabled
+  }
+}
+
+subscription userSubscription($id: ID!) {
+  user(id: $id) {
+    operation
+    data {
+      ...UserFields
+    }
+  }
+}

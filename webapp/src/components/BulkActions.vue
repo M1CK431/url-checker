@@ -1,5 +1,8 @@
 <template>
-  <div class="h-0 w-full text-center relative">
+  <div
+    class="h-0 w-full text-center relative"
+    :class="{ '-z-10': !modelValue.length }"
+  >
     <div
       class="h-10 px-3 bg-white/80 text-slate-700 rounded-md inline-flex items-center gap-2.5 shadow-xl -translate-y-8 opacity-0 transition-opacity duration-300"
       :class="{ 'opacity-100': modelValue.length }"
