@@ -33,7 +33,12 @@ export default {
               }
             }
           `,
-          variables: { hosts }
+          variables: { hosts },
+          update: () =>
+            this.$subscribe.handleMutation(
+              { operation: "DELETE", evictCache: { fieldName: "websites" } },
+              hosts.map(host => ({ __typename: "Website", host }))
+            )
         })
         .then(({ data: { deleteWebsites: { ok, message } } = {} }) => {
           if (!ok) return error({ content: message });

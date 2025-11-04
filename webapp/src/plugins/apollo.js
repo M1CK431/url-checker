@@ -59,7 +59,12 @@ const link = split(
 );
 
 export const apolloClient = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      WebsiteSubscription: { merge: true },
+      Website: { keyFields: ["host"] }
+    }
+  }),
   link: from([errorLink, authLink, link])
 });
 

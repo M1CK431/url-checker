@@ -156,21 +156,19 @@ export default {
   },
   mounted() {
     this.$subscribe.add(
-      { key: "user", fieldName: "users", clearOnDelete: true },
+      { key: "user", clearOnDelete: true },
       { query: userSubscription, variables: this.$props },
-      {
-        next: ({ data: { user } }) => {
-          const { operation, data: { identifier } = {} } = user;
-          const { name, params } = this.$route;
-          const isMounted = name === "user" && this.id === params.id;
-          if (operation !== "DELETE" || !isMounted) return;
+      ({ data: { user } }) => {
+        const { operation, data: { identifier } = {} } = user;
+        const { name, params } = this.$route;
+        const isMounted = name === "user" && this.id === params.id;
+        if (operation !== "DELETE" || !isMounted) return;
 
-          info({
-            title: this.$t("REDIRECTION"),
-            content: this.$t("USER_{identifier}_DELETED", { identifier })
-          });
-          this.$router.push({ name: "users" });
-        }
+        info({
+          title: this.$t("REDIRECTION"),
+          content: this.$t("USER_{identifier}_DELETED", { identifier })
+        });
+        return this.$router.push({ name: "users" });
       }
     );
   },

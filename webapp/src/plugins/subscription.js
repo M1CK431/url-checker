@@ -12,31 +12,64 @@ const getKey = (operation, { __typename, ...rest }) => {
   return `${__typename}:${operation}:${identifier}`;
 };
 
+const handleEvictCache = (evictCache, operation) => {
+  if (Array.isArray(evictCache))
+    return evictCache.forEach(evictCache =>
+      handleEvictCache(evictCache, operation)
+    );
+
+  const { on = ["CREATE", "DELETE"], fieldName, evictOpts } = evictCache;
+
+  if (!on?.[0] || on.includes(operation)) {
+    if (fieldName)
+      (Array.isArray(fieldName) ? fieldName : [fieldName]).forEach(fieldName =>
+        apolloClient.cache.evict({ fieldName })
+      );
+
+    if (evictOpts)
+      (Array.isArray(evictOpts) ? evictOpts : [evictOpts]).forEach(evictOpts =>
+        apolloClient.cache.evict(evictOpts)
+      );
+
+    apolloClient.cache.gc();
+  }
+};
+
 export const add = (
-  { key, fieldName, evictCache, clearOnDelete },
+  { key, evictCache, clearOnDelete },
   subscriptionOpts,
-  { next, ...hooks } = {}
+  hooks
 ) => {
+  const { next, ...ohterHooks } =
+    typeof hooks === "function" ? { next: hooks } : (hooks ?? {});
+
   subscriptions.has(key) && remove(key);
 
   subscriptions.set(
     key,
     apolloClient.subscribe(subscriptionOpts).subscribe({
-      next(...args) {
-        next?.(...args);
+      async next(res) {
+        // allow next() to:
+        // - delay following instructions execution (async/await)
+        // - override or event prevent (if passing "false") cache eviction using second arg
+        let nextEvictCache;
+        next && (await next(res, evictCache => (nextEvictCache = evictCache)));
+        nextEvictCache ??= evictCache;
 
-        const [{ operation, data }] = Object.values(args[0].data);
-        if (operation === "UPDATE") return;
-        if (operation === "DELETE" && clearOnDelete) return remove(key);
+        const [{ operation, data }] = Object.values(res.data);
 
-        if (evictCache && !lastLocalMutations.has(getKey(operation, data))) {
-          apolloClient.cache.evict({ fieldName });
-          apolloClient.cache.gc();
-        }
+        if (operation === "DELETE" && clearOnDelete) remove(key);
+
+        if (!nextEvictCache || lastLocalMutations.has(getKey(operation, data)))
+          return;
+
+        handleEvictCache(nextEvictCache, operation);
       },
-      ...hooks
+      ...ohterHooks
     })
   );
+
+  return () => remove(key);
 };
 
 export const remove = key => {
@@ -44,9 +77,8 @@ export const remove = key => {
   subscriptions.delete(key);
 };
 
-export const handleMutation = ({ operation, fieldName }, entities) => {
-  apolloClient.cache.evict({ fieldName });
-  apolloClient.cache.gc();
+export const handleMutation = ({ operation, evictCache }, entities) => {
+  handleEvictCache({ on: [], ...evictCache }, operation);
 
   entities.forEach(entity => {
     const key = getKey(operation, entity);

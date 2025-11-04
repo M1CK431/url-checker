@@ -26,8 +26,7 @@
 
 <script>
 import { Loader, Card, ReportCard } from "@/components";
-import reportsQuery from "./reports.query.gql";
-import reportSub from "./report.subscription.gql";
+import { reportsQuery, reportSubscription } from "./lastReports.gql";
 
 export default {
   components: { Loader, Card, ReportCard },
@@ -37,15 +36,13 @@ export default {
       query: reportsQuery,
       update: ({ reports: { entries } }) => entries,
       error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      reportChange: {
-        query: reportSub,
-        result({ data: { report: { operation } = {} } }) {
-          operation !== "UPDATE" && this.$apollo.queries?.reports.refetch();
-        }
-      }
     }
+  },
+  mounted() {
+    this.$subscribe.add(
+      { key: "dashboard-report", evictCache: { fieldName: "reports" } },
+      { query: reportSubscription }
+    );
   },
   i18n: {
     messages: {

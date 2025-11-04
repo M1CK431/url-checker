@@ -64,11 +64,21 @@
         </div>
 
         <div class="absolute left-4 bottom-4 flex gap-4">
-          <NButton type="primary" @click="generateReport" :loading="generating">
+          <NButton
+            type="primary"
+            @click="generateReport"
+            :loading="generating"
+            :disabled="report.status === 'PROCESSING'"
+          >
             {{ $t("CHECK") }}
           </NButton>
 
-          <NButton type="primary" circle @click="$refs.pieChart.exportAsPng()">
+          <NButton
+            type="primary"
+            circle
+            @click="$refs.pieChart.exportAsPng()"
+            :disabled="report.status === 'PROCESSING'"
+          >
             <RiDownload2Line class="text-base" />
           </NButton>
 
@@ -78,7 +88,12 @@
             }"
           >
             <template #default="{ deleteReports }">
-              <NButton type="primary" circle @click="deleteReports([reportId])">
+              <NButton
+                type="primary"
+                circle
+                @click="deleteReports([reportId])"
+                :disabled="report.status === 'PROCESSING'"
+              >
                 <RiDeleteBin7Fill />
               </NButton>
             </template>
@@ -116,14 +131,18 @@ import Illustration from "./components/Illustration.vue";
 import PreviousReport from "./components/PreviousReport/PreviousReport.vue";
 import CheckResults from "./components/CheckResults/CheckResults.vue";
 import DeleteReports from "./components/DeleteReports.vue";
-import reportQuery from "./queries/report.query.gql";
-import reportSub from "./queries/report.subscription.gql";
+import {
+  reportQuery,
+  reportSubscription,
+  websiteSubscription
+} from "./report.gql";
 import gql from "graphql-tag";
 import {
   success,
   requestErrorHandler,
   elapsedTimeFormatter,
-  getRoundedPercent
+  getRoundedPercent,
+  info
 } from "@/helpers.js";
 
 export default {
@@ -138,7 +157,10 @@ export default {
     Status
   },
   inheritAttrs: false,
-  props: { reportId: { type: String, required: true } },
+  props: {
+    host: { type: String, required: true },
+    reportId: { type: String, required: true }
+  },
   setup: () => ({ elapsedTimeFormatter, getRoundedPercent }),
   data: () => ({ report: {}, error: "", generating: false }),
   apollo: {
@@ -148,18 +170,60 @@ export default {
         return { id: this.reportId };
       },
       error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      reportChange: {
-        query: reportSub,
-        variables() {
-          return { id: this.reportId };
-        }
-      }
     }
   },
   computed: {
     urlPathname: ({ report: { url } }) => url && new URL(url).pathname
+  },
+  watch: {
+    reportId: {
+      immediate: true,
+      handler() {
+        const { host, reportId } = this;
+
+        this.$subscribe.add(
+          { key: `report:${reportId}-website`, clearOnDelete: true },
+          { query: websiteSubscription, variables: { host } },
+          ({ data: { website } }) => {
+            const { operation } = website;
+            const { name, params } = this.$route;
+            const isMounted = name === "report" && reportId === params.reportId;
+            if (operation !== "DELETE" || !isMounted) return;
+
+            info({
+              title: this.$t("REDIRECTION"),
+              content: this.$t("WEBSITE_{HOST}_DELETED", { host })
+            });
+
+            return this.$router.push({ name: "sites" });
+          }
+        );
+
+        this.$subscribe.add(
+          { key: `report:${this.reportId}`, clearOnDelete: true },
+          { query: reportSubscription, variables: { id: this.reportId } },
+          ({ data: { report } }) => {
+            const { operation, data } = report;
+            const { name, params } = this.$route;
+            const isMounted =
+              name === "report" && this.reportId === params.reportId;
+            if (operation !== "DELETE" || !isMounted) return;
+
+            info({
+              title: this.$t("REDIRECTION"),
+              content: this.$t("REPORT_DELETED")
+            });
+
+            const { host, reports } = data.website;
+            return this.$router.push(
+              reports.totalCount > 1
+                ? { name: "site", params: { host } }
+                : { name: "sites" }
+            );
+          }
+        );
+      }
+    }
   },
   methods: {
     generateReport() {
@@ -186,8 +250,16 @@ export default {
   },
   i18n: {
     messages: {
-      "en-US": { "{COUNT}_REPORTS": "1 report | {n} reports" },
-      "fr-FR": { "{COUNT}_REPORTS": "1 rapport | {n} rapports" }
+      "en-US": {
+        "{COUNT}_REPORTS": "1 report | {n} reports",
+        "WEBSITE_{HOST}_DELETED": "Website {host} deleted",
+        REPORT_DELETED: "Report deleted"
+      },
+      "fr-FR": {
+        "{COUNT}_REPORTS": "1 rapport | {n} rapports",
+        "WEBSITE_{HOST}_DELETED": "Site {host} supprimé",
+        REPORT_DELETED: "Rapport supprimé"
+      }
     }
   }
 };

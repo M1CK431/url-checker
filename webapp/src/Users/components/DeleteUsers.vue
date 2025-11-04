@@ -37,7 +37,7 @@ export default {
           variables: { ids },
           update: () =>
             this.$subscribe.handleMutation(
-              { operation: "DELETE" },
+              { operation: "DELETE", evictCache: { fieldName: "users" } },
               ids.map(id => ({ __typename: "User", id }))
             )
         })

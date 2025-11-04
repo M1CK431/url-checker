@@ -1,0 +1,34 @@
+fragment reportFields on Report {
+  id
+  createdAt
+  http1xxCount
+  http2xxCount
+  http3xxCount
+  http4xxCount
+  http5xxCount
+  totalCount
+  processedCount
+  status
+  errorReason
+  website {
+    host
+    faviconUrl
+  }
+}
+
+query reportsQuery {
+  reports(sort: { by: createdAt, order: desc }, page: { current: 1 }) {
+    entries {
+      ...reportFields
+    }
+  }
+}
+
+subscription reportSubscription {
+  report {
+    operation
+    data {
+      ...reportFields
+    }
+  }
+}

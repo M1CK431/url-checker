@@ -1,0 +1,29 @@
+query checkResultsQuery(
+  $sort: CheckResultSortInput
+  $filters: CheckResultFiltersInput
+  $page: PageInput!
+) {
+  checkResults(sort: $sort, page: $page, filters: $filters) {
+    totalCount
+    entries {
+      url
+      updatedAt
+      responseCode
+      redirectUrl
+      size
+      duration
+      status
+      errorReason
+    }
+  }
+}
+
+subscription reportSubscription($id: ID!) {
+  report(id: $id) {
+    operation
+    data {
+      id
+      status
+    }
+  }
+}

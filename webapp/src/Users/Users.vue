@@ -113,7 +113,7 @@ export default {
   },
   mounted() {
     this.$subscribe.add(
-      { key: "users", fieldName: "users", evictCache: true },
+      { key: "users", evictCache: { fieldName: "users" } },
       {
         query: gql`
           subscription {

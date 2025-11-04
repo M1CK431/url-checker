@@ -94,7 +94,7 @@ export default {
           variables: { identifier, password, enabled },
           update: (_cache, { data }) =>
             this.$subscribe.handleMutation(
-              { operation: "CREATE", fieldName: "users" },
+              { operation: "CREATE", evictCache: { fieldName: "users" } },
               [data.upsertUser]
             )
         })
