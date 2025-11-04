@@ -31,9 +31,13 @@ export const {
         _max: { totalCount: true }
       }).then(({ _max }) => _max.totalCount)
     }),
-    reports: getReportsField(t)
+    reports: getReportsField(t),
+    deleted: undefined
   })
 });
+
+// garbage collector: remove deleted (if any) at startup
+WebsiteDbModel.deleteMany({ where: { deleted: true } }).catch(() => {});
 
 schemaBuilder.queryFields(t => ({
   websites: t.field({
@@ -46,12 +50,13 @@ schemaBuilder.queryFields(t => ({
         description: "If not provided, all entries will be returned"
       })
     },
-    resolve: async (_parent, { filters, sort, page }, context, info) => {
+    resolve: async (parent, { filters, sort, page }, context, info) => {
       const { current, size } = getValidatedPage(page);
       const { by, order } = sort ?? {};
 
       const commonQueryOpts = {
-        ...filters && { where: filters },
+        // also list deleted if parent is deleted too (for subscriptions)
+        where: { ...filters, ...parent?.deleted || { deleted: false } },
         ...sort && { orderBy: [{ [by]: order }] }
       };
 
@@ -71,9 +76,32 @@ schemaBuilder.queryFields(t => ({
     type: WebsiteGqlType,
     args: { host: t.arg.id({ required: true }) },
     resolve: (query, _parent, { host }) =>
-      WebsiteDbModel.findUnique({ ...query, where: { host } })
+      WebsiteDbModel.findUnique({ ...query, where: { host, deleted: false } })
   })
 }));
+
+export const deleteWebsites = async hosts => {
+  const query = { where: { host: { in: hosts } } };
+  const pending = await WebsiteDbModel.findMany(query);
+
+  await Promise.all([
+    WebsiteDbModel.updateMany({ ...query, data: { deleted: true } }),
+    ReportDbModel.updateMany({
+      where: { websiteHost: { in: hosts } },
+      data: { deleted: true }
+    })
+  ]).catch(err => {
+    throw new Error(`Failed to delete website(s): ${err.toString()}`);
+  });
+
+  // slightly delay effective deletion for subscription
+  setTimeout(() => WebsiteDbModel.deleteMany(query).catch(() => {}), 5000);
+
+  pending.forEach(website => pubSub.publish(
+    "website",
+    { operation: "DELETE", primaryKey: website.host }
+  ));
+};
 
 schemaBuilder.mutationField(
   "deleteWebsites",
@@ -81,17 +109,8 @@ schemaBuilder.mutationField(
     type: "OperationResult",
     args: { hosts: t.arg.idList({ required: true }) },
     resolve: async (_parent, { hosts }) => {
-      const query = { where: { host: { in: hosts } } };
-      const pending = await WebsiteDbModel.findMany(query);
-
-      return WebsiteDbModel.deleteMany({ where: { host: { in: hosts } } })
-        .then(() =>
-          pending.forEach(website => pubSub.publish(
-            "website",
-            { operation: "DELETE", primaryKey: website.host, website }
-          )))
-        .then(() => ({ ok: true, message: `${hosts.length} website(s) deleted` }))
-        .catch(err => ({ ok: false, message: err.toString() }));
+      await deleteWebsites(hosts);
+      return { ok: true, message: `${hosts.length} website(s) deleted` };
     }
   })
 );
@@ -107,7 +126,7 @@ schemaBuilder.subscriptionField(
       filter(({ primaryKey }) => !host || primaryKey === host)
     ),
     resolve: async (
-      { operation, primaryKey, website },
+      { operation, primaryKey },
       _args,
       context,
       info
@@ -115,10 +134,7 @@ schemaBuilder.subscriptionField(
       // slightly delay subscription to let enough time for mutation return
       await new Promise(res => setTimeout(res, 500));
 
-      if (operation === "DELETE")
-        return { operation, data: { ...website, status: "DELETED" } };
-
-      const data = WebsiteDbModel.findUnique({
+      const data = await WebsiteDbModel.findUnique({
         ...queryFromInfo({ context, info, path: ["data"] }),
         where: { host: primaryKey }
       });

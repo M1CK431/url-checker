@@ -13,7 +13,13 @@ export const {
   UserGqlType,
   UserGqlFiltersType,
   UserGqlSortType
-} = new Model("User", { additionalFields: () => ({ password: undefined }) });
+} = new Model(
+  "User",
+  { additionalFields: () => ({ password: undefined, deleted: undefined }) }
+);
+
+// garbage collector: remove deleted (if any) at startup
+UserDbModel.deleteMany({ where: { deleted: true } }).catch(() => {});
 
 schemaBuilder.queryFields(t => ({
   me: t.prismaField({
@@ -40,7 +46,7 @@ schemaBuilder.queryFields(t => ({
       const { by, order } = sort ?? {};
 
       const commonQueryOpts = {
-        ...filters && { where: filters },
+        where: { ...filters, deleted: false },
         ...sort && { orderBy: [{ [by]: order }] }
       };
 
@@ -61,7 +67,7 @@ schemaBuilder.queryFields(t => ({
     type: UserGqlType,
     args: { id: t.arg.id({ required: true }) },
     resolve: (query, _parent, { id }) =>
-      UserDbModel.findUnique({ ...query, where: { id: +id } })
+      UserDbModel.findUnique({ ...query, where: { id: +id, deleted: false } })
   }),
 
   passwordPolicy: t.field({
@@ -128,16 +134,21 @@ schemaBuilder.mutationFields(t => ({
       const query = { where: { id: { in: ids.map(id => +id) } } };
       const pending = await UserDbModel.findMany(query);
 
-      return UserDbModel.deleteMany(query)
-        .then(() => {
-          pending.forEach(user => pubSub.publish(
-            "user",
-            { operation: "DELETE", primaryKey: user.id, user }
-          ));
+      await UserDbModel.updateMany({ ...query, data: { deleted: true } })
+        .catch(err => {
+          throw new Error(`Failed to delete user(s): ${err.toString()}`);
+        });
 
-          return { ok: true, message: `${ids.length} users deleted successfully` };
-        })
-        .catch(err => ({ ok: false, message: err.toString() }));
+      // slightly delay effective deletion for subscription
+      setTimeout(() => UserDbModel.deleteMany(query).catch(() => {}), 5000);
+
+      // Publier l'événement de suppression
+      pending.forEach(user => pubSub.publish(
+        "user",
+        { operation: "DELETE", primaryKey: user.id }
+      ));
+
+      return { ok: true, message: `${ids.length} user(s) deleted` };
     }
   }),
 
@@ -157,6 +168,7 @@ schemaBuilder.mutationFields(t => ({
       const lastLogin = new Date();
       const userCount = await UserDbModel.count();
 
+      // create first user
       if (userCount === 0) {
         const { isValid, message } = validatePasswordComplexity(password);
         if (!isValid) throw new Error(`Can't create the first user. ${message}`);
@@ -171,8 +183,9 @@ schemaBuilder.mutationFields(t => ({
         return { user, token };
       }
 
-      // Sinon, procéder à l'authentification normale
-      const user = await UserDbModel.findUnique({ where: { identifier } });
+      const user = await UserDbModel.findUnique({
+        where: { identifier, deleted: false }
+      });
       if (!user) throw new Error("Invalid credentials");
       if (!user.enabled) throw new Error("Account disabled");
 
@@ -206,7 +219,7 @@ schemaBuilder.subscriptionField(
       filter(({ primaryKey }) => !id || primaryKey === +id)
     ),
     resolve: async (
-      { operation, primaryKey, user },
+      { operation, primaryKey },
       _args,
       context,
       info
@@ -214,9 +227,7 @@ schemaBuilder.subscriptionField(
       // slightly delay subscription to let enough time for mutation return
       await new Promise(res => setTimeout(res, 500));
 
-      if (operation === "DELETE") return { operation, data: user };
-
-      const data = UserDbModel.findUnique({
+      const data = await UserDbModel.findUnique({
         ...queryFromInfo({ context, info, path: ["data"] }),
         where: { id: primaryKey }
       });
