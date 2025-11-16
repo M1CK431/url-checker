@@ -1,5 +1,6 @@
 import { filter, pipe } from "graphql-yoga";
 import { queryFromInfo } from "@pothos/plugin-prisma";
+import db from "#src/db.js";
 import schemaBuilder from "#src/schemaBuilder.js";
 import Model from "#src/Model.js";
 import { getPaginatedType, getSubscriptionType, PageInput } from "#src/common.js";
@@ -11,7 +12,7 @@ import {
 } from "#src/helpers.js";
 import { extractUrls, getFaviconUrl } from "#src/urlsExtractor.js";
 import { checkUrl } from "#src/checkUrl.js";
-import { WebsiteDbModel } from "../website/website.js";
+import { WebsiteDbModel, deleteWebsites } from "../website/website.js";
 import { CheckResultDbModel, getCheckResultsField } from "../checkResult/checkResult.js";
 import pubSub from "#src/pubSub.js";
 
@@ -25,8 +26,14 @@ export const {
     url: { type: "URL" },
     duration: { description: "unit: ms" }
   },
-  additionalFields: t => ({ checkResults: getCheckResultsField(t) })
+  additionalFields: t => ({
+    checkResults: getCheckResultsField(t),
+    deleted: undefined
+  })
 });
+
+// garbage collector: remove deleted (if any) at startup
+ReportDbModel.deleteMany({ where: { deleted: true } }).catch(() => {});
 
 const reportsPaginatedType = getPaginatedType("Reports", ReportGqlType);
 
@@ -47,7 +54,8 @@ export const getReportsField = t => t.field({
     parent && (filters = { ...filters, websiteHost: parent.host });
 
     const commonQueryOpts = {
-      ...filters && { where: filters },
+      // also list deleted if parent is deleted too (for subscriptions)
+      where: { ...filters, ...parent?.deleted || { deleted: false } },
       ...sort && { orderBy: [{ [by]: order }] }
     };
 
@@ -71,7 +79,7 @@ schemaBuilder.queryFields(t => ({
     type: ReportGqlType,
     args: { id: t.arg.id({ required: true }) },
     resolve: (query, _parent, { id }) =>
-      ReportDbModel.findUnique({ ...query, where: { id: +id } })
+      ReportDbModel.findUnique({ ...query, where: { id: +id, deleted: false } })
   })
 }));
 
@@ -88,20 +96,15 @@ schemaBuilder.mutationFields(t => ({
 
       if (!urls[0]) throw `No URL found. Is "${url}" a sitemap?`;
 
-      const website = await WebsiteDbModel
-        .upsert({
-          where: { host: url.host },
-          create: { host: url.host, faviconUrl },
-          update: {}
-        })
-        .then(website => {
-          pubSub.publish("website", {
-            operation:
-              +website.createdAt === +website.updatedAt ? "CREATE" : "UPDATE",
-            primaryKey: website.host
-          });
-
-          return website;
+      const websiteCreated = await WebsiteDbModel
+        .create({ data: { host: url.host, faviconUrl } })
+        .then(() => true)
+        .catch(err => {
+          // P2002 is "Unique constraint failed on the {constraint}"
+          // meanings website with that host already exist
+          // src: https://www.prisma.io/docs/orm/reference/error-reference#p2002
+          if (err.code === "P2002") return false;
+          else throw err;
         });
 
       const report = await ReportDbModel
@@ -109,10 +112,14 @@ schemaBuilder.mutationFields(t => ({
           data: {
             url: url.href,
             totalCount: urls.length,
-            website: { connect: { host: website.host } }
+            website: { connect: { host: url.host } }
           }
         })
         .then(report => {
+          pubSub.publish("website", {
+            operation: websiteCreated ? "CREATE" : "UPDATE",
+            primaryKey: url.host
+          });
           pubSub.publish(
             "report",
             { operation: "CREATE", primaryKey: report.id }
@@ -127,6 +134,10 @@ schemaBuilder.mutationFields(t => ({
         where: { id: report.id }
       })
         .then(({ checkResults }) => {
+          pubSub.publish(
+            "website",
+            { operation: "UPDATE", primaryKey: url.host }
+          );
           pubSub.publish(
             "report",
             { operation: "UPDATE", primaryKey: report.id }
@@ -154,10 +165,16 @@ schemaBuilder.mutationFields(t => ({
           data: { status: "ERROR", errorReason: err.toString() },
           where: { id: report.id }
         }))
-        .finally(() => pubSub.publish(
-          "report",
-          { operation: "UPDATE", primaryKey: report.id }
-        ));
+        .finally(() => {
+          pubSub.publish(
+            "website",
+            { operation: "UPDATE", primaryKey: url.host }
+          );
+          pubSub.publish(
+            "report",
+            { operation: "UPDATE", primaryKey: report.id }
+          );
+        });
 
       return report;
     }
@@ -167,19 +184,60 @@ schemaBuilder.mutationFields(t => ({
     type: "OperationResult",
     args: { ids: t.arg.idList({ required: true }) },
     resolve: async (_parent, { ids }) => {
-      const query = { where: { id: { in: ids.map(id => +id) } } };
-      const pending = await ReportDbModel.findMany(query);
+      ids = ids.map(id => +id);
+      const pendings = await ReportDbModel.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, websiteHost: true }
+      });
 
-      return ReportDbModel.deleteMany(query)
-        .then(() =>
-          WebsiteDbModel.deleteMany({ where: { reports: { none: {} } } }))
-        .then(() =>
-          pending.forEach(report => pubSub.publish(
-            "report",
-            { operation: "DELETE", primaryKey: report.id, report }
-          )))
-        .then(() => ({ ok: true, message: `${ids.length} report(s) deleted` }))
-        .catch(err => ({ ok: false, message: err.toString() }));
+      // TODO: to handle PSQL, replace `?` with `$1`, `$2`, etc... like this
+      // const placeholders = `${ids.map((_, i) => `$${i+1}`)}`;
+      const placeholders = `${ids.map(() => "?")}`;
+      const orphanedWebsitesHosts = await db.$queryRawUnsafe(
+        `SELECT w.host
+        FROM Website w
+        LEFT JOIN Report r ON r.websiteHost = w.host AND r.id NOT IN (${placeholders})
+        WHERE w.host IN (
+          SELECT websiteHost FROM Report WHERE id IN (${placeholders})
+        )
+        GROUP BY w.host
+        HAVING COUNT(r.id) = 0`,
+        ...ids,
+        ...ids
+      ).then(websites => websites.map(w => w.host));
+
+      orphanedWebsitesHosts[0] && await deleteWebsites(orphanedWebsitesHosts);
+
+      const remainingReports = pendings
+        .filter(r => !orphanedWebsitesHosts.includes(r.websiteHost));
+
+      if (remainingReports[0]) {
+        const query = {
+          where: { id: { in: remainingReports.map(r => r.id) } }
+        };
+        await ReportDbModel.updateMany({ ...query, data: { deleted: true } })
+          .catch(err => {
+            throw new Error(`Failed to delete report(s): ${err.toString()}`);
+          });
+
+        // slightly delay effective deletion for subscription
+        setTimeout(
+          () => ReportDbModel.deleteMany(query).catch(() => {}),
+          5000
+        );
+
+        remainingReports.forEach(report => pubSub.publish(
+          "website",
+          { operation: "UPDATE", primaryKey: report.websiteHost }
+        ));
+      }
+
+      pendings.forEach(report => pubSub.publish(
+        "report",
+        { operation: "DELETE", primaryKey: report.id }
+      ));
+
+      return { ok: true, message: `${ids.length} report(s) deleted` };
     }
   })
 }));
@@ -195,7 +253,7 @@ schemaBuilder.subscriptionField(
       filter(({ primaryKey }) => !id || primaryKey === +id)
     ),
     resolve: async (
-      { operation, primaryKey, report },
+      { operation, primaryKey },
       _args,
       context,
       info
@@ -203,10 +261,7 @@ schemaBuilder.subscriptionField(
       // slightly delay subscription to let enough time for mutation return
       await new Promise(res => setTimeout(res, 500));
 
-      if (operation === "DELETE")
-        return { operation, data: { ...report, status: "DELETED" } };
-
-      const data = ReportDbModel.findUnique({
+      const data = await ReportDbModel.findUnique({
         ...queryFromInfo({ context, info, path: ["data"] }),
         where: { id: primaryKey }
       });

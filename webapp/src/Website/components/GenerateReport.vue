@@ -48,25 +48,28 @@ export default {
       },
       update: ({ website: { sitemaps } }) => sitemaps,
       error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      report: {
-        query: gql`
-          subscription {
-            report {
-              operation
-            }
-          }
-        `,
-        result({ data: { operation } }) {
-          if (operation === "UPDATE") return;
-          this.queries?.sitemaps.refetch();
-        }
-      }
     }
   },
   computed: {
     isValidTarget: ({ url }) => isUrl(url)
+  },
+  mounted() {
+    this.$subscribe.add(
+      { key: "generateReport-website", clearOnDelete: true },
+      {
+        query: gql`
+          subscription {
+            website {
+              data {
+                host
+                sitemaps
+              }
+            }
+          }
+        `,
+        variables: { host: this.host }
+      }
+    );
   },
   methods: {
     onCreate(path) {
@@ -85,7 +88,12 @@ export default {
               }
             }
           `,
-          variables: { url: this.url }
+          variables: { url: this.url },
+          update: (_cache, { data }) =>
+            this.$subscribe.handleMutation(
+              { operation: "CREATE", evictCache: { fieldName: "reports" } },
+              [data.generateReport]
+            )
         })
         .then(({ data: { generateReport: { id } } = {} }) => {
           success();

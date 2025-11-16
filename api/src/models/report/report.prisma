@@ -10,6 +10,7 @@ model Report {
   url       String // @db.VarChar(2083)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deleted   Boolean? @default(false)
 
   http5xxCount Int @default(0)
   http4xxCount Int @default(0)

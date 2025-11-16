@@ -1,9 +1,0 @@
-subscription {
-  report {
-    operation
-    data {
-      id
-      status
-    }
-  }
-}

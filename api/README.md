@@ -74,20 +74,65 @@ systemctl enable --now url-checker
 
 There are some settings you can change as environment variables:
 
-| Name                | Default            | Description                                                    |
-| ------------------- | ------------------ | -------------------------------------------------------------- |
-| `HOST`              | `localhost`        | Host to listen on                                              |
-| `PORT`              | `3000`             | Port to listen on                                              |
-| `ALLOWED_DOMAINS`   | `[]`               | Array of allowed **domains hostname** to check                 |
-| `RATE_LIMIT_MS`     | `1000`             | Single URL check rate limit (in ms)                            |
-| `REDIRECT_LIMIT`    | `10`               | Max internal cascading redirections to follow                  |
-| `CURL`              | `curl`             | `curl` binary to use (see [troubleshooting](#troubleshooting)) |
-| `SQLITE_URL`        | `file:./db.sqlite` | SQLite db file URL                                             |
+| Name                | Default                 | Description                                                                                     |
+| ------------------- | ----------------------- | ----------------------------------------------------------------------------------------------- |
+| `HOST`              | `localhost`             | Host to listen on                                                                               |
+| `PORT`              | `3000`                  | Port to listen on                                                                               |
+| `ALLOWED_DOMAINS`   | `[]`                    | Array of allowed **domains hostname** to check                                                  |
+| `RATE_LIMIT_MS`     | `1000`                  | Single URL check rate limit (in ms)                                                             |
+| `REDIRECT_LIMIT`    | `10`                    | Max internal cascading redirections to follow                                                   |
+| `CURL`              | `curl`                  | `curl` binary to use (see [troubleshooting](#troubleshooting))                                  |
+| `SQLITE_URL`        | `file:./db.sqlite`      | SQLite db file URL                                                                              |
+| `JWT_SECRET`        | `find_me_if_you_can_;)` | Secret key for JWT token signing                                                                |
+| `JWT_EXPIRES_IN`    | `7d`                    | JWT token expiration time (see [vercel/ms](https://github.com/vercel/ms) for supported formats)  |
+| `PASSWORD_POLICY`   | See below               | JSON object defining password complexity requirements                                           |
 
-A sample [environment file](./.env.development) is provided with default values as an example for the development environnement.\
+A sample [environment file](./.env.development) is provided as an example for the development environnement.\
 Example `ALLOWED_DOMAINS` valid value: `["toto.com", "titi.fr"]`.
 
 ⚠️ Don't forget to run `pnpm prisma generate` if you change `SQLITE_URL`.
+
+⚠️ **Security Warning**: You MUST change the default `JWT_SECRET` value in production to prevent unauthorized access. Using the default value is a serious security risk.
+
+You can generate a secure secret using OpenSSL:
+```sh
+openssl rand -base64 32
+```
+
+#### Password policy
+By default, all password constraints are enabled with a minimum length of 8 characters.
+
+⚠️ **Note about password length**: bcrypt has a limit of 72 bytes. Since UTF-8 characters can be 1-4 bytes each, passwords are limited to 18 characters to ensure no truncation occurs (72/4 = 18).
+
+You can customize the password policy by setting the `PASSWORD_POLICY` environment variable to a JSON object with the following properties:
+- `length`: Minimum password length (default: 8, maximum: 18)
+- `upper`: Require uppercase letters (default: true)
+- `lower`: Require lowercase letters (default: true)
+- `number`: Require numbers (default: true)
+- `symbol`: Require special characters (default: true)
+
+To disable specific constraints, set them to `false` (for boolean constraints) or `0` (for numeric constraints).
+
+Example to disable special character requirement and set minimum length to 6 characters:
+```json
+{"length": 6, "symbol": false}
+```
+
+Example to disable all constraints except minimum length of 8 characters:
+```json
+{"upper": false, "lower": false, "number": false, "symbol": false}
+```
+
+### First User Creation
+
+The first time you use the API, you'll need to create an initial user account. This is done automatically through the `login` mutation:
+
+1. When no users exist in the database, calling the `login` mutation with any valid login/password combination will create that user as the first administrator
+2. The password must meet the complexity requirements defined by `PASSWORD_POLICY`
+3. Once created, this user can be used for subsequent authentications
+4. Additional users can be created using the `upsertUser` mutation by an authenticated administrator
+
+This one-time setup simplifies the initial configuration without requiring a separate initialization process.
 
 ## Upgrade
 
@@ -107,6 +152,42 @@ systemctl restart url-checker
 ⚠️ Please ensure that no changes were made to the systemd service file in the updated version or you may need to update your copied one accordingly.
 
 ℹ️ Note that this will upgrade both the API and the Webapp so don't forget to also follow the [Webapp upgrade instructions](../webapp/README.md#upgrade).
+
+## Migration from v1
+
+### ORM migration
+
+Due to ORM migration (Sequelize -> Prisma), the DB schema is sligtly different.
+Run the following script to overwrite your existing database with the new schema:
+```sh
+pnpm prisma reset
+```
+
+⚠️ Previous data will be lost during that operation! Make sure to backup your database before running this command if needed.
+Although technically possible, no data migration instructions or script are provided for now.
+Feel free to open an issue if you need help to migrate your data.
+
+### Authentication system
+
+Version 2 introduces a complete authentication system with user management. The API is now protected and requires authentication for all operations except the initial user creation.
+
+Key changes:
+- All GraphQL queries, mutations, and subscriptions (except `login`) now require a valid JWT token
+- Tokens must be passed in the `Authorization` header as `Bearer <token>`
+- A first user must be created using the `login` mutation with any valid login/password combination when no users exist in the database
+- Passwords must meet complexity requirements defined by the `PASSWORD_POLICY` environment variable
+
+### GraphQL schema change
+
+The GraphQL schema remains largely the same with its existing operations, featuring slightly stronger typing for `URL` and more granular filtering capabilities. The main difference is that all operations now require JWT authentication, except for the initial user creation.
+
+If you have automations using the API, please check the updated schema to adapt them.
+
+#### Breaking changes
+
+1. All operations now require authentication (except initial user creation)
+2. New users management operations: `upsertUser`, `deleteUsers`, `login`, `logout`, `me`, `user` and `users`
+3. All existing operations require a valid JWT token in the `Authorization` header
 
 ## Troubleshooting
 
@@ -138,25 +219,6 @@ systemctl restart url-checker
 ```
 
 Everything should now work properly.
-
-## Migration from v1
-
-### ORM migration
-
-Due to ORM migration (Sequelize -> Prisma), the DB schema is sligtly different.
-Run the following script to overwrite your existing database with the new schema:
-```sh
-pnpm prisma reset
-```
-
-⚠️ Previous data will be lost during that operation! Make sure to backup your database before running this command if needed.
-Although technically possible, no data migration instructions or script are provided for now.
-Feel free to open an issue if you need help to migrate your data.
-
-### GraphQL schema change
-
-The GraphQL schema is mostly the same, except for a slightly stronger typing for `URL` and more granular filtering capabilities.
-If you have automations using the API, please check the updated schema to adapt them if necessary.
 
 ## For developers
 

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import usersRoutes from "./Users/routes.js";
 
 export const routes = [
   {
@@ -22,7 +23,8 @@ export const routes = [
     name: "report",
     props: true,
     component: () => import("@/Report/Report.vue")
-  }
+  },
+  ...usersRoutes
 ];
 
 export const router = createRouter({

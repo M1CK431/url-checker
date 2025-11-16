@@ -5,67 +5,101 @@
     :dateLocale="$i18n.locale === 'fr-FR' ? dateFrFR : dateEnUS"
     :themeOverrides="theme"
   >
-    <div id="layout" class="h-screen w-screen relative">
-      <header>
-        <div class="flex items-center">
-          <img src="/url-checker.png" alt="logo" class="h-10 mr-3" />
-          <h1 class="text-2xl font-semibold text-slate-700 select-none">
-            URL Checker
-          </h1>
-        </div>
-
-        <div class="flex gap-10">
-          <div class="switch">
-            <RouterLink
-              :to="{ name: 'home' }"
-              :class="{ 'text-white': $route.name === 'home' }"
-            >
-              {{ $t("HOME") }}
-            </RouterLink>
-            <RouterLink
-              :to="{ name: 'sites' }"
-              :class="{ 'text-white': $route.name !== 'home' }"
-            >
-              {{ $t("REPORT") }}
-            </RouterLink>
-
-            <div class="absolute inset-1 rounded-[0.625rem] overflow-hidden">
-              <div
-                class="absolute h-full w-1/2 bg-slate-700 left-0 transition-transform duration-300"
-                :class="{ 'translate-x-full': $route.name !== 'home' }"
-              />
-            </div>
-          </div>
-
-          <NDropdown
-            showArrow
-            :options="[
-              {
-                label: `Auto (${browserLocale})`,
-                key: null
-              },
-              { label: '🇺🇸 &nbsp; English', key: 'en-US' },
-              { label: '🇫🇷 &nbsp; Français', key: 'fr-FR' }
-            ]"
-            @select="setLocale"
+    <Login>
+      <div id="layout" class="h-screen w-screen relative">
+        <header>
+          <RouterLink
+            :to="{ name: 'home' }"
+            class="flex items-center hover:no-underline"
           >
-            <span
-              class="pt-0.5 cursor-pointer text-slate-700 font-semibold uppercase"
-            >
-              {{ $i18n.locale.slice(0, 2) }}
-              <span class="text-xl align-text-bottom">&#8964;</span>
-            </span>
-          </NDropdown>
-        </div>
-      </header>
+            <img src="/url-checker.png" alt="logo" class="h-10 mr-3" />
+            <h1 class="text-2xl font-semibold text-slate-700 select-none">
+              URL Checker
+            </h1>
+          </RouterLink>
 
-      <main
-        class="h-full overflow-auto p-10 pt-[6.5rem]"
-        v-scroll="() => ctx.onScroll && ctx.onScroll()"
-      >
-        <RouterView />
-      </main>
-    </div>
+          <div class="flex gap-6">
+            <div v-show="!$route.name?.startsWith('user')" class="switch mr-10">
+              <RouterLink
+                :to="{ name: 'home' }"
+                :class="{ 'text-white': $route.name === 'home' }"
+              >
+                {{ $t("HOME") }}
+              </RouterLink>
+              <RouterLink
+                :to="{ name: 'sites' }"
+                :class="{ 'text-white': $route.name !== 'home' }"
+              >
+                {{ $t("REPORT") }}
+              </RouterLink>
+
+              <div class="absolute inset-1 rounded-[0.625rem] overflow-hidden">
+                <div
+                  class="absolute h-full w-1/2 bg-slate-700 left-0 transition-transform duration-300"
+                  :class="{ 'translate-x-full': $route.name !== 'home' }"
+                />
+              </div>
+            </div>
+
+            <NDropdown
+              showArrow
+              :options="[
+                {
+                  label: `Auto (${browserLocale})`,
+                  key: ''
+                },
+                { label: '🇺🇸 &nbsp; English', key: 'en-US' },
+                { label: '🇫🇷 &nbsp; Français', key: 'fr-FR' }
+              ]"
+              @select="setLocale"
+            >
+              <span
+                class="pt-0.5 cursor-pointer text-slate-700 font-semibold uppercase"
+              >
+                {{ $i18n.locale.slice(0, 2) }}
+                <span class="text-xl align-text-bottom">&#8964;</span>
+              </span>
+            </NDropdown>
+
+            <NDropdown
+              showArrow
+              :options="[
+                {
+                  label: $t('MY_PROFILE'),
+                  key: `/users/${$auth.user.id}`,
+                  icon: renderUserDropdownIcon('profile')
+                },
+                {
+                  label: $t('USERS'),
+                  key: '/users',
+                  icon: renderUserDropdownIcon('users')
+                },
+                {
+                  label: $t('LOGOUT'),
+                  key: '',
+                  icon: renderUserDropdownIcon('logout')
+                }
+              ]"
+              @select="$event ? $router.push($event) : logout()"
+            >
+              <NAvatar
+                :color="slate[700]"
+                class="uppercase rounded-xl cursor-pointer"
+              >
+                {{ $auth.user.identifier[0] }}
+              </NAvatar>
+            </NDropdown>
+          </div>
+        </header>
+
+        <main
+          class="h-full overflow-auto p-10 pt-[6.5rem]"
+          v-scroll="() => ctx.onScroll && ctx.onScroll()"
+        >
+          <RouterView />
+        </main>
+      </div>
+    </Login>
   </NConfigProvider>
 </template>
 
@@ -73,6 +107,16 @@
 import { slate } from "tailwindcss/colors";
 import { enUS, dateEnUS, frFR, dateFrFR } from "naive-ui";
 import { setLocale } from "@/plugins/i18n.js";
+import { logout } from "@/plugins/auth.js";
+import Login from "./Login.vue";
+
+const icons = {
+  logout: defineAsyncComponent(() => import("~icons/ri/logout-box-fill")),
+  profile: defineAsyncComponent(() => import("~icons/ri/id-card-fill")),
+  users: defineAsyncComponent(() => import("~icons/ri/group-fill"))
+};
+
+const renderUserDropdownIcon = icon => () => h(icons[icon]);
 
 const theme = {
   common: {
@@ -120,7 +164,19 @@ export const ctx = reactive({ onScroll: null });
 
 export default {
   name: "Main",
-  setup: () => ({ ctx, enUS, dateEnUS, frFR, dateFrFR, theme, setLocale }),
+  components: { Login },
+  setup: () => ({
+    slate,
+    ctx,
+    enUS,
+    dateEnUS,
+    frFR,
+    dateFrFR,
+    theme,
+    setLocale,
+    logout,
+    renderUserDropdownIcon
+  }),
   computed: {
     browserLocale: ({ $i18n }) =>
       ($i18n.availableLocales.includes(navigator.language)
@@ -129,6 +185,20 @@ export default {
       )
         .slice(0, 2)
         .toUpperCase()
+  },
+  i18n: {
+    messages: {
+      "en-US": {
+        MY_PROFILE: "My profile",
+        USERS: "Users",
+        LOGOUT: "Logout"
+      },
+      "fr-FR": {
+        MY_PROFILE: "Mon profil",
+        USERS: "Utilisateurs",
+        LOGOUT: "Déconnexion"
+      }
+    }
   }
 };
 </script>

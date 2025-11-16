@@ -40,7 +40,7 @@ export const getCheckResultsField = t => t.field({
     parent && (filters = { ...filters, reportId: parent.id });
 
     const commonQueryOpts = {
-      ...filters && { where: filters },
+      where: { ...filters, report: { deleted: false } },
       ...sort && { orderBy: [{ [by]: order }] }
     };
 
