@@ -4,7 +4,7 @@
   <ConfirmModal
     :show="!!hosts.length"
     @update:show="hosts = []"
-    :positive-button-props="{ loading: deleting }"
+    :positiveButtonProps="{ loading: deleting }"
     @positiveClick="deleteWebsites"
   />
 </template>
@@ -23,33 +23,23 @@ export default {
       const { $apollo, hosts, to, $router } = this;
       this.deleting = true;
 
-      Promise.all(
-        hosts.map(host =>
-          $apollo.mutate({
-            mutation: gql`
-              mutation ($host: String!) {
-                deleteWebsite(host: $host) {
-                  ok
-                  message
-                }
+      $apollo
+        .mutate({
+          mutation: gql`
+            mutation ($hosts: [ID!]!) {
+              deleteWebsites(hosts: $hosts) {
+                ok
+                message
               }
-            `,
-            variables: { host }
-          })
-        )
-      )
-        .then(deleteWebsites => {
-          const deleted = deleteWebsites.reduce(
-            (acc, { data: { deleteWebsite: { ok, message } } = {} }, idx) =>
-              ok
-                ? (acc.push(hosts[idx]), acc)
-                : (error({ content: message }), acc),
-            []
-          );
-          if (!deleted.length) return;
+            }
+          `,
+          variables: { hosts }
+        })
+        .then(({ data: { deleteWebsites: { ok, message } } = {} }) => {
+          if (!ok) return error({ content: message });
 
-          success({ content: this.$tc("{n}_WEBSITE_DELETED", deleted.length) });
-          this.$emit("deleted", deleted);
+          success({ content: this.$t("{n}_WEBSITE_DELETED", hosts.length) });
+          this.$emit("deleted", hosts);
           this.hosts = [];
           to && $router.push(to);
         })

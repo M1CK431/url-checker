@@ -39,7 +39,7 @@
     </template>
 
     <template #status="{ status, row: { errorReason } }">
-      <Status :status="status" :error-reason="errorReason" />
+      <Status :status="status" :errorReason="errorReason" />
     </template>
 
     <template #actions="{ row }">

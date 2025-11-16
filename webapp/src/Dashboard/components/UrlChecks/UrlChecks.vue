@@ -128,7 +128,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
                 website {

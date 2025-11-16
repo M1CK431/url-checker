@@ -4,7 +4,7 @@
   <ConfirmModal
     :show="!!ids.length"
     @update:show="ids = []"
-    :positive-button-props="{ loading: deleting }"
+    :positiveButtonProps="{ loading: deleting }"
     @positiveClick="deleteReports"
   />
 </template>
@@ -24,33 +24,23 @@ export default {
       const { $apollo, ids, to, $router } = this;
       this.deleting = true;
 
-      Promise.all(
-        ids.map(id =>
-          $apollo.mutate({
-            mutation: gql`
-              mutation ($id: ID!) {
-                deleteReport(id: $id) {
-                  ok
-                  message
-                }
+      $apollo
+        .mutate({
+          mutation: gql`
+            mutation ($ids: [ID!]!) {
+              deleteReports(ids: $ids) {
+                ok
+                message
               }
-            `,
-            variables: { id }
-          })
-        )
-      )
-        .then(deleteReports => {
-          const deleted = deleteReports.reduce(
-            (acc, { data: { deleteReport: { ok, message } } = {} }, idx) =>
-              ok
-                ? (acc.push(ids[idx]), acc)
-                : (error({ content: message }), acc),
-            []
-          );
-          if (!deleted.length) return;
+            }
+          `,
+          variables: { ids }
+        })
+        .then(({ data: { deleteReports: { ok, message } } = {} }) => {
+          if (!ok) return error({ content: message });
 
-          success({ content: this.$tc("{n}_REPORT_DELETED", deleted.length) });
-          this.$emit("deleted", deleted);
+          success({ content: this.$t("{n}_REPORT_DELETED", ids.length) });
+          this.$emit("deleted", ids);
           this.ids = [];
           to && $router.push(to);
         })

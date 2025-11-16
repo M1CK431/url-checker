@@ -16,7 +16,7 @@
         </NButton>
 
         <span class="text-base font-semibold">
-          {{ $tc("{COUNT}_REPORTS", report.website.reports.totalCount) }}
+          {{ $t("{COUNT}_REPORTS", report.website.reports.totalCount) }}
         </span>
       </div>
 
@@ -97,7 +97,7 @@
         />
 
         <div v-else class="absolute inset-y-0 w-[30rem] right-4">
-          <ReportPieChart ref="pieChart" v-bind="report" :offset-y="75" />
+          <ReportPieChart ref="pieChart" v-bind="report" :offsetY="75" />
         </div>
       </div>
 
@@ -107,7 +107,7 @@
     </Card>
   </Loader>
 
-  <CheckResults :report-id="reportId" />
+  <CheckResults :reportId="reportId" />
 </template>
 
 <script>
@@ -168,7 +168,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
               }

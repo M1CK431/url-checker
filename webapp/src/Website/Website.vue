@@ -16,12 +16,12 @@
         </div>
 
         <div class="ml-4 font-semibold">
-          {{ $tc("{n}_REPORTS", website.reports.totalCount) }}
+          {{ $t("{n}_REPORTS", website.reports.totalCount) }}
         </div>
       </div>
 
       <div class="flex">
-        <GenerateReport :host="host" />
+        <GenerateReport :host />
 
         <DeleteWebsites v-slot="{ deleteWebsites }">
           <div class="ml-4 pl-4 border-l border-slate-500">
@@ -47,8 +47,8 @@
       :error="errors.reports"
       v-model:sort="sort"
       @update:sort="reportsQueryVarsChange"
-      :reports="reports"
-      :no-match="noReportsMatch"
+      :reports
+      :noMatch="noReportsMatch"
       class="mt-6"
     />
   </Loader>
@@ -97,7 +97,7 @@ export default {
   apollo: {
     website: {
       query: gql`
-        query ($host: String!) {
+        query ($host: ID!) {
           website(host: $host) {
             host
             faviconUrl
@@ -126,12 +126,20 @@ export default {
         const apiFilters = Object.entries(filters).reduce(
           (acc, [key, filter]) =>
             filter && `${filter}` !== `${defaultFilters[key]}`
-              ? { ...acc, [key]: { start: filter[0], end: filter[1] } }
+              ? { ...acc, [key]: { gte: filter[0], lte: filter[1] } }
               : acc,
           {}
         );
 
-        return { host, sort, page, search, filters: apiFilters };
+        return {
+          host,
+          sort,
+          page,
+          filters: {
+            ...apiFilters,
+            ...(search && { url: { contains: search } })
+          }
+        };
       },
       update({ website: { reports: { totalCount, entries } = {} } }) {
         this.reportsTotalCount = totalCount;
@@ -142,7 +150,7 @@ export default {
     $subscribe: {
       websiteChange: {
         query: gql`
-          subscription ($host: String!) {
+          subscription ($host: ID!) {
             website(host: $host) {
               operation
             }
@@ -164,7 +172,7 @@ export default {
           if (operation === "UPDATE") return prev && Object.assign(prev, data);
 
           Object.assign(this, { page: 1, reports: [] });
-          Object.values(this.$apollo.queries || {}).forEach(query =>
+          Object.values(this.$apollo.queries ?? {}).forEach(query =>
             query.refetch()
           );
         }
@@ -196,14 +204,8 @@ export default {
   },
   i18n: {
     messages: {
-      "en-US": {
-        "{n}_REPORTS": "1 report | {n} reports",
-        SELECT_A_WEBSITE_URL: "Select a website URL"
-      },
-      "fr-FR": {
-        "{n}_REPORTS": "1 rapport | {n} rapports",
-        SELECT_A_WEBSITE_URL: "Sélection une URL du site"
-      }
+      "en-US": { "{n}_REPORTS": "1 report | {n} reports" },
+      "fr-FR": { "{n}_REPORTS": "1 rapport | {n} rapports" }
     }
   }
 };

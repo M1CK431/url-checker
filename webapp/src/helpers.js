@@ -1,11 +1,11 @@
-import { t, tc } from "@/plugins/i18n.js";
+import { t } from "@/plugins/i18n.js";
 import { notification } from "@/plugins/naiveUI.js";
 import { allowedDomains } from "@/plugins/allowedDomains.js";
 
 const notificationOptions = { duration: 4500, keepAliveOnHover: true };
 const renderContent = content => () => h("span", { innerHTML: content });
 
-export const error = ({ title = tc("ERROR"), content, ...rest }) =>
+export const error = ({ title = t("ERROR"), content, ...rest }) =>
   notification.error({
     title,
     ...(content && { content: renderContent(content) }),

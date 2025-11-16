@@ -2,9 +2,9 @@
   <div class="relative">
     <DeleteWebsites v-slot="{ deleteWebsites }" @deleted="handleDeleted">
       <Table
-        :model-value="modelValue"
+        :modelValue
         v-bind="$attrs"
-        :columns="columns"
+        :columns
         class="text-slate-700 websites-table"
         @rowClick="
           $router.push({ name: 'site', params: { host: $event.host } })
@@ -65,7 +65,7 @@
       </Table>
 
       <BulkActions
-        :model-value="modelValue"
+        :modelValue
         v-bind="$attrs"
         @bulkDelete="deleteWebsites($event.map(({ host }) => host))"
         class="absolute bottom-0"

@@ -1,13 +1,12 @@
 query Report(
   $id: ID!
-  $sort: CheckResultSort
-  $filters: CheckResultFilters
-  $search: String
+  $sort: CheckResultSortInput
+  $filters: CheckResultFiltersInput
   $page: PageInput!
 ) {
   report(id: $id) {
     id
-    checkResults(search: $search, sort: $sort, page: $page, filters: $filters) {
+    checkResults(sort: $sort, page: $page, filters: $filters) {
       totalCount
       entries {
         url

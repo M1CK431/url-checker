@@ -1,5 +1,5 @@
 query {
-  reports(sort: { by: createdAt, order: DESC }, page: { current: 1 }) {
+  reports(sort: { by: createdAt, order: desc }, page: { current: 1 }) {
     entries {
       id
       createdAt

@@ -9,7 +9,7 @@ const { CURL = "curl" } = process.env;
 
 // Si t'as pas d'ami...
 const curly = (url, out) =>
-  pExec(`${CURL} -sL -w '%{json}' -o '${out.replace(/'/g, `'"'"'`)}' '${url}'`);
+  pExec(`${CURL} -sL -w '%{json}' -o '${out.replace(/'/g, "'\"'\"'")}' '${url}'`);
 
 export const extractUrls = async url => {
   const { host } = new URL(url);
@@ -24,7 +24,7 @@ export const extractUrls = async url => {
 
   const dom = await new Promise((resolve, reject) => {
     const parser = new Parser(
-      new DomHandler((err, dom) => (err ? reject(err) : resolve(dom)))
+      new DomHandler((err, dom) => err ? reject(err) : resolve(dom))
     );
     parser.write(readFileSync(tmpFile, { encoding: "utf8" }));
     parser.end();

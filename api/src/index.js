@@ -1,22 +1,12 @@
 "use strict";
 
-import Koa from "koa";
-import Router from "@koa/router";
-import bodyParser from "koa-bodyparser";
-import cors from "@koa/cors";
-
-import { ApolloServer } from "@apollo/server";
-// eslint-disable-next-line node/file-extension-in-import
-import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-// eslint-disable-next-line node/file-extension-in-import
-import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/disabled";
-import { koaMiddleware } from "@as-integrations/koa";
 import { createServer } from "http";
+import { createYoga } from "graphql-yoga";
+import { useServer } from "graphql-ws/use/ws";
 import { WebSocketServer } from "ws";
-// eslint-disable-next-line node/file-extension-in-import
-import { useServer } from "graphql-ws/lib/use/ws";
 
-import schema from "./schema.js";
+import schemaBuilder from "./schemaBuilder.js";
+import "./models/index.js";
 
 // Check for curl version (must be at least 7.72.0 because we need -w '%{json}' support)
 import { exec } from "node:child_process";
@@ -28,42 +18,41 @@ exec(`${CURL} -V`, (_, stdout) => {
     throw new Error("curl not found or it's version is lower than 7.72.0");
 });
 
-const app = new Koa();
-const httpServer = createServer(app.callback());
-const router = new Router();
-const wsServer = new WebSocketServer({ server: httpServer, path: "/graphql" });
-
-const wsServerCleanup = useServer({ schema }, wsServer);
-const apolloServer = new ApolloServer({
-  schema,
-  plugins: [
-    ApolloServerPluginDrainHttpServer({ httpServer }),
-    // Proper shutdown for the WebSocket server.
-    {
-      serverWillStart: () => ({
-        drainServer: async () => await wsServerCleanup.dispose()
-      })
-    },
-    ...(NODE_ENV === "production"
-      ? [ApolloServerPluginLandingPageDisabled]
-      : [])
-  ]
+const yoga = createYoga({
+  schema: schemaBuilder.toSchema(),
+  graphiql: { subscriptionsProtocol: "WS" }
 });
+const server = createServer(yoga);
+const wsServer = new WebSocketServer({ server, path: yoga.graphqlEndpoint });
 
-await apolloServer.start();
+// src: https://the-guild.dev/graphql/yoga-server/docs/features/subscriptions#graphql-over-websocket-protocol-via-graphql-ws
+useServer(
+  {
+    execute: args => args.execute(args),
+    subscribe: args => args.subscribe(args),
+    onSubscribe: async (ctx, _id, params) => {
+      const { request: req, socket } = ctx.extra;
+      const { schema, execute, subscribe, contextFactory, parse, validate } =
+        yoga.getEnveloped({ ...ctx, req, socket, params });
 
-router.get("/", ctx => {
-  ctx.body = "KOA Server running! Go back to sleep or code!";
-});
-router.all("/graphql", koaMiddleware(apolloServer));
+      const args = {
+        schema,
+        operationName: params.operationName,
+        document: parse(params.query),
+        variableValues: params.variables,
+        contextValue: await contextFactory(),
+        execute,
+        subscribe
+      };
 
-app
-  .use(cors())
-  .use(bodyParser())
-  .use(router.routes())
-  .use(router.allowedMethods());
+      const errors = validate(args.schema, args.document);
+      if (errors.length) return errors;
+      return args;
+    }
+  },
+  wsServer
+);
 
-app.on("error", err => console.log(err));
-
-await new Promise(res => httpServer.listen({ host: HOST, port: PORT }, res));
+await new Promise(res => server.listen({ host: HOST, port: PORT }, res));
+// eslint-disable-next-line no-console
 console.log(`🚀 Server ready at http://${HOST}:${PORT} in ${NODE_ENV} mode`);

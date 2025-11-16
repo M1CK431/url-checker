@@ -1,16 +1,14 @@
 query (
-  $host: String!
-  $sort: ReportSort!
+  $host: ID!
+  $sort: ReportSortInput!
   $page: Int!
-  $search: String
-  $filters: ReportFilters
+  $filters: ReportFiltersInput
 ) {
   website(host: $host) {
     host
     reports(
       sort: $sort
       page: { current: $page, size: 20 }
-      search: $search
       filters: $filters
     ) {
       totalCount

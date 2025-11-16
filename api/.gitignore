@@ -138,3 +138,9 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# AI tools
+.aider-desk
+
+# sqlite db files
+db.sqlite*

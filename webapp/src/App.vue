@@ -2,8 +2,8 @@
   <NConfigProvider
     abstract
     :locale="$i18n.locale === 'fr-FR' ? frFR : enUS"
-    :date-locale="$i18n.locale === 'fr-FR' ? dateFrFR : dateEnUS"
-    :theme-overrides="theme"
+    :dateLocale="$i18n.locale === 'fr-FR' ? dateFrFR : dateEnUS"
+    :themeOverrides="theme"
   >
     <div id="layout" class="h-screen w-screen relative">
       <header>
@@ -38,7 +38,7 @@
           </div>
 
           <NDropdown
-            show-arrow
+            showArrow
             :options="[
               {
                 label: `Auto (${browserLocale})`,

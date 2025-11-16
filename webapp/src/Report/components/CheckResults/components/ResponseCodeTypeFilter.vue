@@ -3,7 +3,7 @@
     <div
       class="item"
       :class="modelValue ? 'inactive' : 'bg-white'"
-      @click="$emit('update:modelValue', null)"
+      @click="$emit('update:modelValue', undefined)"
     >
       <span class="font-semibold text-base">{{ $t("ALL") }}</span>
       <div class="px-1.5 rounded bg-slate-700/20">
@@ -16,7 +16,7 @@
       :key="key"
       class="item"
       :class="
-        modelValue?.start === getResponseCodeRange(key).start
+        modelValue?.gte === getResponseCodeRange(key).gte
           ? 'bg-white'
           : report[`http${key}xxCount`]
             ? 'inactive'
@@ -24,7 +24,7 @@
       "
       @click="
         report[`http${key}xxCount`] &&
-          $emit('update:modelValue', getResponseCodeRange(key))
+        $emit('update:modelValue', getResponseCodeRange(key))
       "
     >
       <div
@@ -44,8 +44,8 @@ import responseCodeTypes from "@/responseCodeTypes.const.js";
 import gql from "graphql-tag";
 
 const getResponseCodeRange = responseCodeType => ({
-  start: +`${responseCodeType}00`,
-  end: +`${responseCodeType}99`
+  gte: +`${responseCodeType}00`,
+  lte: +`${responseCodeType}99`
 });
 
 export default {

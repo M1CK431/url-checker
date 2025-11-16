@@ -7,7 +7,7 @@
         params: { ...(website && { host: website.host }), reportId: id }
       })
     "
-    class="w-[21.5rem] cursor-pointer hover:shadow-2xl hover:bg-white/50 transition-colors"
+    class="w-[21rem] cursor-pointer hover:shadow-2xl hover:bg-white/50 transition-colors"
   >
     <div
       v-if="website"
@@ -21,7 +21,7 @@
       <NCheckbox
         v-if="$props['onUpdate:checked']"
         @click.stop
-        :checked="checked"
+        :checked
         @update:checked="$props['onUpdate:checked']"
       >
         {{ localeCreatedAt }}
@@ -53,7 +53,7 @@
 
       <div class="text-center">
         <div class="font-semibold mb-1">{{ $t("STATUS") }}</div>
-        <Status :status="status" :error-reason="errorReason" />
+        <Status :status :errorReason />
       </div>
     </div>
   </Card>
@@ -68,14 +68,14 @@ export default {
   components: { Card, ReportPieChart, Status },
   props: {
     id: { type: String, required: true },
-    createdAt: { type: Number, required: true },
+    createdAt: { type: [Number, String, Date], required: true },
     totalCount: { type: Number, required: true },
     processedCount: { type: Number, required: true },
     status: { type: String, required: true },
     errorReason: String,
     website: Object,
     checked: Boolean,
-    // eslint-disable-next-line vue/prop-name-casing, vue/no-unused-properties
+    // eslint-disable-next-line vue/prop-name-casing
     "onUpdate:checked": Function
   },
   computed: {
