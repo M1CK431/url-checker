@@ -97,6 +97,10 @@ export const checkUrl = (
     await updateReportDbModel(reportId, {
       processedCount: { increment: 1 },
       [`http${`${response_code}`[0]}xxCount`]: { increment: 1 }
+    }).catch(err => {
+      // Ignore useless MariaDB error related to innodb_snapshot_isolation
+      if (!err.toString().includes("Record has changed since last read in table"))
+        throw err;
     });
 
     if (!redirect_url) return resolve(checkResult);

@@ -6,12 +6,14 @@ enum CheckStatusEnum {
 
 model CheckResult {
   id        Int      @id @default(autoincrement())
-  url       String // @db.VarChar(2083)
+  url       String // DB:["sqlite"]
+  //url       String @db.VarChar(2083) // DB:["mysql","postgresql"]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   responseCode Int?
-  redirectUrl  String? // @db.VarChar(2083)
+  redirectUrl  String? // DB:["sqlite"]
+  //redirectUrl  String? @db.VarChar(2083) // DB:["mysql","postgresql"]
   size         Int             @default(0)
   status       CheckStatusEnum @default(PROCESSING)
   errorReason  String?

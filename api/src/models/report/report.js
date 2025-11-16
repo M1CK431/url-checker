@@ -190,20 +190,15 @@ schemaBuilder.mutationFields(t => ({
         select: { id: true, websiteHost: true }
       });
 
-      // TODO: to handle PSQL, replace `?` with `$1`, `$2`, etc... like this
-      // const placeholders = `${ids.map((_, i) => `$${i+1}`)}`;
-      const placeholders = `${ids.map(() => "?")}`;
       const orphanedWebsitesHosts = await db.$queryRawUnsafe(
-        `SELECT w.host
-        FROM Website w
-        LEFT JOIN Report r ON r.websiteHost = w.host AND r.id NOT IN (${placeholders})
-        WHERE w.host IN (
-          SELECT websiteHost FROM Report WHERE id IN (${placeholders})
+        `SELECT w."host"
+        FROM "Website" w
+        LEFT JOIN "Report" r ON r."websiteHost" = w."host" AND r."id" NOT IN (${ids})
+        WHERE w."host" IN (
+          SELECT "websiteHost" FROM "Report" WHERE "id" IN (${ids})
         )
-        GROUP BY w.host
-        HAVING COUNT(r.id) = 0`,
-        ...ids,
-        ...ids
+        GROUP BY w."host"
+        HAVING COUNT(r."id") = 0`
       ).then(websites => websites.map(w => w.host));
 
       orphanedWebsitesHosts[0] && await deleteWebsites(orphanedWebsitesHosts);

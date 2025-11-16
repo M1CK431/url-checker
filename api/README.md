@@ -6,7 +6,7 @@ API for URL Checker, a tool to easily check URLs in a sitemap.
 
 ### Prerequisites
 
-* At least [Node.js](https://nodejs.org/) v22.7 is required (but always use the latest LTS if possible)
+* At least [Node.js](https://nodejs.org/) v22.17 is required (but always use the latest LTS if possible)
 * Only Linux-based systems are officially supported
 * The API is using [curl](https://curl.se/) for URL checking, at least v7.70 must be installed
 
@@ -82,15 +82,16 @@ There are some settings you can change as environment variables:
 | `RATE_LIMIT_MS`     | `1000`                  | Single URL check rate limit (in ms)                                                             |
 | `REDIRECT_LIMIT`    | `10`                    | Max internal cascading redirections to follow                                                   |
 | `CURL`              | `curl`                  | `curl` binary to use (see [troubleshooting](#troubleshooting))                                  |
-| `SQLITE_URL`        | `file:./db.sqlite`      | SQLite db file URL                                                                              |
+| `DB_PROVIDER`       | `sqlite`                | Supported providers: `sqlite`, `mysql` or `postgresql`                                          |
+| `DB_URL`            | `file:./db.sqlite`      | DB connexion URL (see [Prisma documentation](https://www.prisma.io/docs/orm/overview/databases) for format details)                              |
 | `JWT_SECRET`        | `find_me_if_you_can_;)` | Secret key for JWT token signing                                                                |
-| `JWT_EXPIRES_IN`    | `7d`                    | JWT token expiration time (see [vercel/ms](https://github.com/vercel/ms) for supported formats)  |
+| `JWT_EXPIRES_IN`    | `7d`                    | JWT token expiration time (see [vercel/ms](https://github.com/vercel/ms) for supported formats) |
 | `PASSWORD_POLICY`   | See below               | JSON object defining password complexity requirements                                           |
 
 A sample [environment file](./.env.development) is provided as an example for the development environnement.\
 Example `ALLOWED_DOMAINS` valid value: `["toto.com", "titi.fr"]`.
 
-⚠️ Don't forget to run `pnpm prisma generate` if you change `SQLITE_URL`.
+⚠️ Don't forget to run `pnpm prisma generate` if you change `DB_PROVIDER` and/or `DB_URL`.
 
 ⚠️ **Security Warning**: You MUST change the default `JWT_SECRET` value in production to prevent unauthorized access. Using the default value is a serious security risk.
 
