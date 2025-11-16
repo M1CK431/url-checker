@@ -1,14 +1,31 @@
 import { PrismaClient } from "./generated/prisma/client.ts";
-import { PrismaBetterSQLite3 } from "@prisma/adapter-better-sqlite3";
 
-const db = new PrismaClient({
-  adapter: new PrismaBetterSQLite3({ url: process.env.SQLITE_URL })
-});
+const { DB_PROVIDER = "sqlite", DB_URL = "file:./db.sqlite" } = process.env;
+let adapter;
+
+if (DB_PROVIDER === "sqlite") {
+  const { PrismaBetterSQLite3 } = await import("@prisma/adapter-better-sqlite3");
+  adapter = new PrismaBetterSQLite3({ url: DB_URL });
+}
+
+if (DB_PROVIDER === "mysql") {
+  const { PrismaMariaDb } = await import("@prisma/adapter-mariadb");
+  adapter = new PrismaMariaDb(DB_URL);
+}
+
+if (DB_PROVIDER === "postgresql") {
+  const { PrismaPg } = await import("@prisma/adapter-pg");
+  const schema = new URLSearchParams(DB_URL.split("?")[1]).get("schema") ?? "public";
+  adapter = new PrismaPg({ connectionString: DB_URL }, { schema });
+}
+
+if (!adapter) throw new Error(`No adapter found for DB provider ${DB_PROVIDER}`);
+const db = new PrismaClient({ adapter });
 
 try {
   await db.$connect();
   // eslint-disable-next-line no-console
-  console.log("Connection has been established successfully.");
+  console.log(`Connection to ${DB_PROVIDER} has been established successfully.`);
 
   const sqliteConfig = [
     "journal_mode = WAL",
@@ -16,12 +33,12 @@ try {
     "journal_size_limit = 6144000"
   ];
 
-  await Promise.all(
+  DB_PROVIDER === "sqlite" && await Promise.all(
     sqliteConfig.map(cnf => db.$executeRawUnsafe(`PRAGMA ${cnf}`))
   );
 } catch (error) {
   // eslint-disable-next-line no-console
-  console.error("Unable to connect to the database.");
+  console.error(`Unable to connect to ${DB_PROVIDER}.`);
   throw error;
 }
 
