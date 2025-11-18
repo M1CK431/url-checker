@@ -24,19 +24,26 @@ for (const type in prismaOps) {
   });
 }
 
+enums.forEach(({ name, values }) => {
+  schemaBuilder.enumType(name, { values: values.map(({ name }) => name) });
+
+  schemaBuilder.inputType(`${name}FilterInput`, {
+    fields: t => ({
+      ...["equals", "not"].reduce(
+        (acc, op) => (acc[op] = t.field({ type: name }), acc),
+        {}
+      ),
+      ...["in", "notIn"].reduce(
+        (acc, op) => (acc[op] = t.field({ type: [name] }), acc),
+        {}
+      )
+    })
+  });
+});
+
 function Model(name, { gqlOverrides = {}, additionalFields = () => {} } = {}) {
   const { fields } = models.find(m => m.name === name);
-  let foreignKeys = [];
-
-  fields.forEach(({ kind, type, relationFromFields }) => {
-    if (kind === "enum")
-      schemaBuilder.enumType(type, {
-        values: enums.find(e => e.name === type).values.map(({ name }) => name)
-      });
-
-    if (relationFromFields)
-      foreignKeys.push(...relationFromFields);
-  });
+  const foreignKeys = fields.flatMap(f => f.relationFields ?? []);
 
   Object.assign(this, {
     [`${name}DbFields`]: fields,
@@ -60,11 +67,8 @@ function Model(name, { gqlOverrides = {}, additionalFields = () => {} } = {}) {
 
     [`${name}GqlFiltersType`]: schemaBuilder.inputType(`${name}FiltersInput`, {
       fields: t => fields.reduce((acc, { kind, name, type }) => {
-        if (kind === "scalar")
+        if (["scalar", "enum"].includes(kind))
           acc[name] = t.field({ type: `${type}FilterInput` });
-
-        if (kind === "enum")
-          acc[name] = t.field({ type: [type] });
 
         return acc;
       }, {})
