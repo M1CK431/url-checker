@@ -30,7 +30,7 @@
     </div>
 
     <div
-      v-if="status === 'PROCESSING'"
+      v-if="['PENDING', 'PROCESSING'].includes(status)"
       class="h-36 flex items-center justify-center"
     >
       <NProgress

@@ -83,6 +83,57 @@ schemaBuilder.queryFields(t => ({
   })
 }));
 
+const processReport = async () => {
+  const report = await ReportDbModel.findFirst({
+    where: { status: "PENDING" },
+    orderBy: { createdAt: "asc" },
+    include: { checkResults: true }
+  });
+
+  if (!report) return;
+
+  await ReportDbModel.update({
+    where: { id: report.id },
+    data: { status: "PROCESSING" }
+  }).then(() => pubSub.publish(
+    "report",
+    { operation: "UPDATE", primaryKey: report.id }
+  ));
+
+  await parallelize(
+    report.checkResults.map(checkResult => () => checkUrl(checkResult))
+  ).then(() => CheckResultDbModel.count({
+    where: { reportId: report.id, status: "ERROR" }
+  }))
+    .then(count => ReportDbModel.update({
+      data: {
+        status: "DONE",
+        duration: Date.now() - report.createdAt,
+        ...count && {
+          status: "ERROR",
+          errorReason: "At least one URL check failed"
+        }
+      },
+      where: { id: report.id }
+    }))
+    .catch(err => ReportDbModel.update({
+      data: { status: "ERROR", errorReason: err.toString() },
+      where: { id: report.id }
+    }))
+    .finally(() => {
+      pubSub.publish(
+        "website",
+        { operation: "UPDATE", primaryKey: report.websiteHost }
+      );
+      pubSub.publish(
+        "report",
+        { operation: "UPDATE", primaryKey: report.id }
+      );
+    });
+
+  processReport();
+};
+
 schemaBuilder.mutationFields(t => ({
   generateReport: t.field({
     type: ReportGqlType,
@@ -112,7 +163,8 @@ schemaBuilder.mutationFields(t => ({
           data: {
             url: url.href,
             totalCount: urls.length,
-            website: { connect: { host: url.host } }
+            website: { connect: { host: url.host } },
+            checkResults: { create: urls.map(url => ({ url })) }
           }
         })
         .then(report => {
@@ -128,53 +180,8 @@ schemaBuilder.mutationFields(t => ({
           return report;
         });
 
-      ReportDbModel.update({
-        data: { checkResults: { create: urls.map(url => ({ url })) } },
-        include: { checkResults: true },
-        where: { id: report.id }
-      })
-        .then(({ checkResults }) => {
-          pubSub.publish(
-            "website",
-            { operation: "UPDATE", primaryKey: url.host }
-          );
-          pubSub.publish(
-            "report",
-            { operation: "UPDATE", primaryKey: report.id }
-          );
-
-          return parallelize(
-            checkResults.map(checkResult => () => checkUrl(checkResult))
-          );
-        })
-        .then(() => CheckResultDbModel.count({
-          where: { reportId: report.id, status: "ERROR" }
-        }))
-        .then(count => ReportDbModel.update({
-          data: {
-            status: "DONE",
-            duration: Date.now() - report.createdAt,
-            ...count && {
-              status: "ERROR",
-              errorReason: "At least one URL check failed"
-            }
-          },
-          where: { id: report.id }
-        }))
-        .catch(err => ReportDbModel.update({
-          data: { status: "ERROR", errorReason: err.toString() },
-          where: { id: report.id }
-        }))
-        .finally(() => {
-          pubSub.publish(
-            "website",
-            { operation: "UPDATE", primaryKey: url.host }
-          );
-          pubSub.publish(
-            "report",
-            { operation: "UPDATE", primaryKey: report.id }
-          );
-        });
+      ReportDbModel.count({ where: { status: "PROCESSING" } })
+        .then(cnt => cnt || processReport());
 
       return report;
     }
