@@ -4,6 +4,9 @@ fragment websiteFields on Website {
   reports {
     totalCount
   }
+  activeReports: reports(filters: { status: { in: [PENDING, PROCESSING] } }) {
+    totalCount
+  }
 }
 
 query websiteQuery($host: ID!) {

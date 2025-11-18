@@ -124,6 +124,13 @@ export default {
           page: this.page
         };
       },
+      update: ({ websites: { totalCount, entries } }) => ({
+        totalCount,
+        entries: entries.map(w => ({
+          ...w,
+          unselectable: !!w.activeReports.totalCount
+        }))
+      }),
       error: (err, vm) => (vm.error = err.toString())
     },
     reportsCount: {

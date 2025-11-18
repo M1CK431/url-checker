@@ -25,9 +25,19 @@
 
         <DeleteWebsites :to="{ name: 'sites' }" v-slot="{ deleteWebsites }">
           <div class="ml-4 pl-4 border-l border-slate-500">
-            <NButton type="primary" circle @click="deleteWebsites([host])">
-              <RiDeleteBin7Fill />
-            </NButton>
+            <NTooltip :disabled="!website.activeReports.totalCount">
+              <template #trigger>
+                <NButton
+                  type="primary"
+                  circle
+                  @click="deleteWebsites([host])"
+                  :disabled="!!website.activeReports.totalCount"
+                >
+                  <RiDeleteBin7Fill />
+                </NButton>
+              </template>
+              {{ $t("A_REPORT_IS_IN_PROGRESS") }}
+            </NTooltip>
           </div>
         </DeleteWebsites>
       </div>
@@ -90,6 +100,7 @@ export default {
     website: {},
     reports: [],
     reportsTotalCount: 0,
+    processingReportsCount: 0,
     page: 1,
     errors: { website: "", reports: "" },
     search: "",
