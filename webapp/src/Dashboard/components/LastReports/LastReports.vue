@@ -13,7 +13,10 @@
       v-else
       class="overflow-y-hidden h-[22rem] flex items-start -mb-14 -mx-8 px-8"
     >
-      <div class="flex flex-wrap gap-x-6 gap-y-20 justify-between w-full">
+      <div
+        class="flex flex-wrap gap-x-6 gap-y-20 w-full"
+        :class="{ 'justify-between': reports.length > 2 }"
+      >
         <ReportCard
           v-for="report in reports"
           :key="report.id"

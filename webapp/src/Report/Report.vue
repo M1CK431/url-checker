@@ -68,7 +68,7 @@
             type="primary"
             @click="generateReport"
             :loading="generating"
-            :disabled="report.status === 'PROCESSING'"
+            :disabled="['PENDING', 'PROCESSING'].includes(report.status)"
           >
             {{ $t("CHECK") }}
           </NButton>
@@ -77,7 +77,7 @@
             type="primary"
             circle
             @click="$refs.pieChart.exportAsPng()"
-            :disabled="report.status === 'PROCESSING'"
+            :disabled="['PENDING', 'PROCESSING'].includes(report.status)"
           >
             <RiDownload2Line class="text-base" />
           </NButton>
@@ -103,7 +103,7 @@
 
       <div class="w-[30rem] relative flex items-center justify-start">
         <NProgress
-          v-if="report.status === 'PROCESSING'"
+          v-if="['PENDING', 'PROCESSING'].includes(report.status)"
           type="circle"
           :percentage="
             Math.round((report.processedCount / report.totalCount) * 100)
