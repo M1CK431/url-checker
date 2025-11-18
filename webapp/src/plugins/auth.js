@@ -8,6 +8,7 @@ export const auth = reactive({ token: "", user: null, loading: true });
 export const reset = () => {
   localStorage.removeItem("auth");
   Object.assign(auth, { token: "", user: null });
+  location.reload(true); // reset webapp, avoid Apollo subscriptions error
 };
 
 export const login = (identifier, password) => {
@@ -65,6 +66,7 @@ auth.token &&
       query: gql`
         query {
           me {
+            id
             identifier
           }
         }
