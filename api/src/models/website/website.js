@@ -81,6 +81,15 @@ schemaBuilder.queryFields(t => ({
 }));
 
 export const deleteWebsites = async hosts => {
+  const processingHosts = await ReportDbModel.findMany({
+    where: { websiteHost: { in: hosts }, status: "PROCESSING" },
+    select: { websiteHost: true },
+    distinct: ["websiteHost"]
+  }).then(reports => reports.map(r => r.websiteHost));
+
+  if (processingHosts[0])
+    throw new Error(`Unable to delete websites ${processingHosts.join(", ")} with processing report.`);
+
   const query = { where: { host: { in: hosts } } };
   const pending = await WebsiteDbModel.findMany(query);
 

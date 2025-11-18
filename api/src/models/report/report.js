@@ -194,8 +194,11 @@ schemaBuilder.mutationFields(t => ({
       ids = ids.map(id => +id);
       const pendings = await ReportDbModel.findMany({
         where: { id: { in: ids } },
-        select: { id: true, websiteHost: true }
+        select: { id: true, status: true, websiteHost: true }
       });
+
+      if (pendings.some(r => r.status === "PROCESSING"))
+        throw new Error("Unable to delete processing reports.");
 
       const orphanedWebsitesHosts = await db.$queryRawUnsafe(
         `SELECT w."host"
