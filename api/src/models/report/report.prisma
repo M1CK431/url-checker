@@ -1,4 +1,5 @@
 enum ReportStatus {
+  PENDING
   PROCESSING
   ERROR
   DONE
@@ -23,7 +24,7 @@ model Report {
   totalCount     Int @default(0)
   duration       Int @default(0) // unit: ms
 
-  status      ReportStatus @default(PROCESSING)
+  status      ReportStatus @default(PENDING)
   errorReason String?
 
   websiteHost  String // DB:["sqlite"]
