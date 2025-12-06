@@ -2,14 +2,16 @@ fragment websiteFields on Website {
   host
   faviconUrl
   updatedAt
-}
-
-fragment reportFields on Reports {
-  totalCount
-  entries {
-    id
-    http5xxCount
-    http4xxCount
+  reports(page: { current: 1, size: 1 }) {
+    totalCount
+    entries {
+      id
+      http5xxCount
+      http4xxCount
+      totalCount
+    }
+  }
+  activeReports: reports(filters: { status: { in: [PENDING, PROCESSING] } }) {
     totalCount
   }
 }
@@ -23,9 +25,6 @@ query websitesQuery(
     totalCount
     entries {
       ...websiteFields
-      reports(page: { current: 1, size: 1 }) {
-        ...reportFields
-      }
     }
   }
 }
@@ -35,9 +34,6 @@ subscription websiteSubscription {
     operation
     data {
       ...websiteFields
-      reports(page: { current: 1, size: 1 }) {
-        ...reportFields
-      }
     }
   }
 }

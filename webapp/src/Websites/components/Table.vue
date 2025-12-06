@@ -52,14 +52,20 @@
             @click.stop
             class="opacity-0 [.websites-table_tr:hover_&]:opacity-100 transition-opacity duration-300"
           >
-            <NButton
-              text
-              type="primary"
-              @click="deleteWebsites([row.host])"
-              class="hover:!text-red-600 transition-colors"
-            >
-              <RiDeleteBin7Fill />
-            </NButton>
+            <NTooltip :disabled="!row.activeReports.totalCount">
+              <template #trigger>
+                <NButton
+                  text
+                  type="primary"
+                  :disabled="!!row.activeReports.totalCount"
+                  @click="deleteWebsites([row.host])"
+                  class="hover:!text-red-600 transition-colors"
+                >
+                  <RiDeleteBin7Fill />
+                </NButton>
+              </template>
+              {{ $t("A_REPORT_IS_IN_PROGRESS") }}
+            </NTooltip>
           </div>
         </template>
       </Table>

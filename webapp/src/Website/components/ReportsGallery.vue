@@ -1,9 +1,9 @@
 <template>
   <div class="flex items-end justify-between" :class="$attrs.class">
     <NCheckbox
-      :checked="!!selected.length && selected.length === reports.length"
-      @update:checked="selected = $event ? reports.map(({ id }) => id) : []"
-      :indeterminate="!!selected.length && selected.length < reports.length"
+      :checked="!!selected.length && selected.length === selectable.length"
+      @update:checked="selected = $event ? selectable.map(({ id }) => id) : []"
+      :indeterminate="!!selected.length && selected.length < selectable.length"
     >
       {{ $t("SELECT_ALL") }}
     </NCheckbox>
@@ -82,6 +82,9 @@ export default {
     reports: { type: Array, default: () => [] }
   },
   data: () => ({ selected: [] }),
+  computed: {
+    selectable: ({ reports }) => reports.filter(r => r.status !== "PROCESSING")
+  },
   methods: {
     toggleSelected(id, evt) {
       const { selected } = this;

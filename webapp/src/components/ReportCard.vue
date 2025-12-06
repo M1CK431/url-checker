@@ -23,6 +23,7 @@
         @click.stop
         :checked
         @update:checked="$props['onUpdate:checked']"
+        :disabled="status === 'PROCESSING'"
       >
         {{ localeCreatedAt }}
       </NCheckbox>
