@@ -33,8 +33,15 @@ export const {
   })
 });
 
-// garbage collector: remove deleted (if any) at startup
+// garbage collector: remove deleted (if any) on startup
 ReportDbModel.deleteMany({ where: { deleted: true } }).catch(() => {});
+
+// garbage collector: mark active reports as ERROR on startup
+ReportDbModel.updateMany({
+  where: { status: { in: ["PENDING", "PROCESSING"] } },
+  data: { status: "ERROR", errorReason: "Server restart" }
+// eslint-disable-next-line no-console
+}).catch(console.error);
 
 const reportsPaginatedType = getPaginatedType("Reports", ReportGqlType);
 
