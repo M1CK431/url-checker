@@ -1,11 +1,12 @@
 import { availableParallelism } from "os";
 import db from "./db.js";
+import { GraphQLError } from "graphql";
 
 export const getValidatedPage = page => {
   const { current, size } = page || {};
   if (page) {
-    if (!current) throw new Error("page.current starts at 1");
-    if (!size) throw new Error("page.size starts at 1");
+    if (!current) throw new GraphQLError("page.current starts at 1");
+    if (!size) throw new GraphQLError("page.size starts at 1");
   }
 
   return { current, size };
@@ -19,7 +20,7 @@ export const checkAllowedDomains = url => {
   const { hostname } = url;
 
   if (!allowedDomains.some(domain => hostname.includes(domain)))
-    throw new Error(`${hostname} not in allowed domains list`);
+    throw new GraphQLError(`${hostname} not in allowed domains list`);
 };
 
 export const checkProcessingDomain = async ({ host }) => {
@@ -27,7 +28,7 @@ export const checkProcessingDomain = async ({ host }) => {
     where: { websiteHost: { contains: host }, status: "PROCESSING" }
   });
 
-  if (count) throw new Error(`Already checking ${host}`);
+  if (count) throw new GraphQLError(`Already checking ${host}`);
 };
 
 const consumer = async (queue, results) => {

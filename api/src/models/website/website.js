@@ -6,6 +6,7 @@ import { getPaginatedType, PageInput, getSubscriptionType } from "#src/common.js
 import { getValidatedPage } from "#src/helpers.js";
 import { ReportDbModel, getReportsField } from "../report/report.js";
 import pubSub from "#src/pubSub.js";
+import { GraphQLError } from "graphql";
 
 export const {
   WebsiteDbModel,
@@ -67,7 +68,9 @@ schemaBuilder.queryFields(t => ({
           ...queryFromInfo({ context, info, path: ["entries"] }),
           ...page && { skip: (current - 1) * size, take: size }
         })
-      ]).catch(err => { throw err; });
+      ]).catch(err => {
+        throw new GraphQLError(`Error fetching websites: ${err.message}`);
+      });
 
       return { totalCount, entries };
     }
@@ -87,8 +90,11 @@ export const deleteWebsites = async hosts => {
     distinct: ["websiteHost"]
   }).then(reports => reports.map(r => r.websiteHost));
 
-  if (processingHosts[0])
-    throw new Error(`Unable to delete websites ${processingHosts.join(", ")} with processing report.`);
+  if (processingHosts[0]) {
+    throw new GraphQLError(
+      `Cannot delete websites ${processingHosts.join(", ")} as some reports are still active`
+    );
+  }
 
   const query = { where: { host: { in: hosts } } };
   const pending = await WebsiteDbModel.findMany(query);
@@ -100,7 +106,7 @@ export const deleteWebsites = async hosts => {
       data: { deleted: true }
     })
   ]).catch(err => {
-    throw new Error(`Failed to delete website(s): ${err.toString()}`);
+    throw new GraphQLError(`Failed to delete websites: ${err.message}`);
   });
 
   // slightly delay effective deletion for subscription
@@ -117,10 +123,11 @@ schemaBuilder.mutationField(
   t => t.field({
     type: "OperationResult",
     args: { hosts: t.arg.idList({ required: true }) },
-    resolve: async (_parent, { hosts }) => {
-      await deleteWebsites(hosts);
-      return { ok: true, message: `${hosts.length} website(s) deleted` };
-    }
+    resolve: (_parent, { hosts }) =>
+      deleteWebsites(hosts).then(() => ({
+        ok: true,
+        message: `${hosts.length} website(s) deleted`
+      }))
   })
 );
 
