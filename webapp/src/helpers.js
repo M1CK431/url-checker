@@ -54,6 +54,8 @@ const dateParts = [
 ];
 
 export const elapsedTimeFormatter = duration => {
+  if (!duration) return "0s";
+
   const d = new Date(0, 0, 0);
   d.setSeconds(duration);
 
