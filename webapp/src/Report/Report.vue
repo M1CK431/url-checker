@@ -52,9 +52,7 @@
 
           <div class="space-x-3">
             <span class="font-semibold">{{ $t("DURATION") }}:</span>
-            <span>
-              {{ elapsedTimeFormatter(Math.round(report.duration / 1000)) }}
-            </span>
+            <span>{{ duration }}</span>
           </div>
 
           <div class="space-x-3">
@@ -162,18 +160,46 @@ export default {
     reportId: { type: String, required: true }
   },
   setup: () => ({ elapsedTimeFormatter, getRoundedPercent }),
-  data: () => ({ report: {}, error: "", generating: false }),
+  data: () => ({
+    report: {},
+    error: "",
+    generating: false,
+    intervalId: null,
+    processingDuration: 0
+  }),
   apollo: {
     report: {
       query: reportQuery,
       variables() {
         return { id: this.reportId };
       },
+      result({ data: { report } }) {
+        if (report.status === "PROCESSING" && !this.intervalId) {
+          const now = Date.now();
+          const [{ updatedAt = now } = {}] = report.oldestCheckResult.entries;
+          this.processingDuration = now - new Date(updatedAt);
+          this.intervalId = setInterval(
+            () => (this.processingDuration += 1000),
+            1000
+          );
+        }
+
+        if (report.status !== "PROCESSING" && this.intervalId)
+          clearInterval(this.intervalId);
+      },
       error: (err, vm) => (vm.error = err.toString())
     }
   },
   computed: {
-    urlPathname: ({ report: { url } }) => url && new URL(url).pathname
+    urlPathname: ({ report: { url } }) => url && new URL(url).pathname,
+    duration: ({ report, processingDuration }) =>
+      elapsedTimeFormatter(
+        Math.round(
+          (report.status === "PROCESSING"
+            ? processingDuration
+            : report.duration) / 1000
+        )
+      )
   },
   watch: {
     reportId: {
@@ -224,6 +250,9 @@ export default {
         );
       }
     }
+  },
+  unmounted() {
+    clearInterval(this.intervalId);
   },
   methods: {
     generateReport() {
