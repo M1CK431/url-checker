@@ -7,6 +7,7 @@ import { getValidatedPage, passwordPolicy, validatePasswordComplexity } from "#s
 import { getPaginatedType, PageInput, getSubscriptionType } from "#src/common.js";
 import bcrypt from "bcryptjs";
 import { generateToken, invalidatedTokens } from "#src/auth.js";
+import { GraphQLError } from "graphql";
 
 export const {
   UserDbModel,
@@ -101,11 +102,11 @@ schemaBuilder.mutationFields(t => ({
     resolve: async (_parent, { id, user }) => {
       if (user.password) {
         const { isValid, message } = validatePasswordComplexity(user.password);
-        if (!isValid) throw new Error(message);
+        if (!isValid) throw new GraphQLError(message);
 
         user.password = await bcrypt.hash(user.password, 10);
       } else if (!id)
-        throw new Error("A password is required for user creation");
+        throw new GraphQLError("A password is required for user creation");
 
       return (
         id
@@ -136,7 +137,7 @@ schemaBuilder.mutationFields(t => ({
 
       await UserDbModel.updateMany({ ...query, data: { deleted: true } })
         .catch(err => {
-          throw new Error(`Failed to delete user(s): ${err.toString()}`);
+          throw new GraphQLError(`Failed to delete user(s): ${err.message}`);
         });
 
       // slightly delay effective deletion for subscription
@@ -171,7 +172,8 @@ schemaBuilder.mutationFields(t => ({
       // create first user
       if (userCount === 0) {
         const { isValid, message } = validatePasswordComplexity(password);
-        if (!isValid) throw new Error(`Can't create the first user. ${message}`);
+        if (!isValid)
+          throw new GraphQLError(`Cannot create first user. ${message}`);
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -186,11 +188,11 @@ schemaBuilder.mutationFields(t => ({
       const user = await UserDbModel.findUnique({
         where: { identifier, deleted: false }
       });
-      if (!user) throw new Error("Invalid credentials");
-      if (!user.enabled) throw new Error("Account disabled");
+      if (!user) throw new GraphQLError("Invalid credentials");
+      if (!user.enabled) throw new GraphQLError("Account disabled");
 
       const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) throw new Error("Invalid credentials");
+      if (!isValid) throw new GraphQLError("Invalid credentials");
 
       UserDbModel.update({ data: { lastLogin }, where: { identifier } });
       const token = generateToken(identifier);

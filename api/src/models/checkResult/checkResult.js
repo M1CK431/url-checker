@@ -4,6 +4,7 @@ import Model from "#src/Model.js";
 import { getPaginatedType, PageInput } from "#src/common.js";
 import { getValidatedPage, checkAllowedDomains } from "#src/helpers.js";
 import { checkURLSync } from "#src/checkUrl.js";
+import { GraphQLError } from "graphql";
 
 const gqlOverrides = {
   url: { type: "URL" },
@@ -51,7 +52,9 @@ export const getCheckResultsField = t => t.field({
         ...queryFromInfo({ context, info, path: ["entries"] }),
         ...page && { skip: (current - 1) * size, take: size }
       })
-    ]).catch(err => { throw err; });
+    ]).catch(err => {
+      throw new GraphQLError(`Error fetching check results: ${err.message}`);
+    });
 
     return { totalCount, entries };
   }
@@ -64,9 +67,10 @@ let lastCheckUrl = 0;
 const checkRateLimit = () => {
   const now = Date.now();
 
-  if (lastCheckUrl > now - RATE_LIMIT_MS) {
-    throw new Error("Rate limit reached, please try again later.");
-  }
+  if (lastCheckUrl > now - RATE_LIMIT_MS)
+    throw new GraphQLError(
+      "Rate limit exceeded. Please try again after a few seconds."
+    );
 
   lastCheckUrl = now;
 };

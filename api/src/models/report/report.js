@@ -15,6 +15,7 @@ import { checkUrl } from "#src/checkUrl.js";
 import { WebsiteDbModel, deleteWebsites } from "../website/website.js";
 import { CheckResultDbModel, getCheckResultsField } from "../checkResult/checkResult.js";
 import pubSub from "#src/pubSub.js";
+import { GraphQLError } from "graphql";
 
 export const {
   ReportDbModel,
@@ -32,8 +33,15 @@ export const {
   })
 });
 
-// garbage collector: remove deleted (if any) at startup
+// garbage collector: remove deleted (if any) on startup
 ReportDbModel.deleteMany({ where: { deleted: true } }).catch(() => {});
+
+// garbage collector: mark active reports as ERROR on startup
+ReportDbModel.updateMany({
+  where: { status: { in: ["PENDING", "PROCESSING"] } },
+  data: { status: "ERROR", errorReason: "Server restart" }
+// eslint-disable-next-line no-console
+}).catch(console.error);
 
 const reportsPaginatedType = getPaginatedType("Reports", ReportGqlType);
 
@@ -66,7 +74,9 @@ export const getReportsField = t => t.field({
         ...queryFromInfo({ context, info, path: ["entries"] }),
         ...page && { skip: (current - 1) * size, take: size }
       })
-    ]).catch(err => { throw err; });
+    ]).catch(err => {
+      throw new GraphQLError(`Error fetching reports: ${err.message}`);
+    });
 
     return { totalCount, entries };
   }
@@ -145,7 +155,8 @@ schemaBuilder.mutationFields(t => ({
       const faviconUrl = await getFaviconUrl(url);
       const urls = await extractUrls(url);
 
-      if (!urls[0]) throw `No URL found. Is "${url}" a sitemap?`;
+      if (!urls[0])
+        throw new GraphQLError(`No URLs found. Is "${url}" a sitemap?`);
 
       const websiteCreated = await WebsiteDbModel
         .create({ data: { host: url.host, faviconUrl } })
@@ -155,7 +166,7 @@ schemaBuilder.mutationFields(t => ({
           // meanings website with that host already exist
           // src: https://www.prisma.io/docs/orm/reference/error-reference#p2002
           if (err.code === "P2002") return false;
-          else throw err;
+          else throw new GraphQLError(`Error creating website: ${err.message}`);
         });
 
       const report = await ReportDbModel
@@ -198,7 +209,7 @@ schemaBuilder.mutationFields(t => ({
       });
 
       if (pendings.some(r => r.status === "PROCESSING"))
-        throw new Error("Unable to delete processing reports.");
+        throw new GraphQLError("Unable to delete processing reports.");
 
       const orphanedWebsitesHosts = await db.$queryRawUnsafe(
         `SELECT w."host"
@@ -222,7 +233,7 @@ schemaBuilder.mutationFields(t => ({
         };
         await ReportDbModel.updateMany({ ...query, data: { deleted: true } })
           .catch(err => {
-            throw new Error(`Failed to delete report(s): ${err.toString()}`);
+            throw new GraphQLError(`Failed to delete report(s): ${err.message}`);
           });
 
         // slightly delay effective deletion for subscription
