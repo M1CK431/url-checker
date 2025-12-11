@@ -152,8 +152,10 @@ schemaBuilder.mutationFields(t => ({
       checkAllowedDomains(url);
       await checkProcessingDomain(url);
 
-      const faviconUrl = await getFaviconUrl(url);
-      const urls = await extractUrls(url);
+      const [faviconUrl, urls] = await Promise.all(
+        [getFaviconUrl(url), extractUrls(url)]
+      )
+        .catch(err => { throw new GraphQLError(err.message); });
 
       if (!urls[0])
         throw new GraphQLError(`No URLs found. Is "${url}" a sitemap?`);
