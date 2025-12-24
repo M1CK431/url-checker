@@ -4,19 +4,21 @@ URL Checker is a **self-hosted** solution which can help you to **detect** any *
 
 ## Features
 
-✅ Check every URLs present in a sitemap\
+✅ Check every URL present in a sitemap\
 ✅ Parallelized checks 🚀️\
-✅ Support both [regular](https://www.sitemaps.org/protocol.html) and [images](https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps) sitemap (except [sitemap index](https://www.sitemaps.org/protocol.html#index))\
+✅ User management with JWT authentication\
+✅ Support both [regular](https://www.sitemaps.org/protocol.html) and [images](https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps) sitemap (including [sitemap index](https://www.sitemaps.org/protocol.html#index))\
 ✅ Build a report with stats, pie chart, URLs list...\
 ✅ Compare with previous report\
 ✅ Paginated, sortable and filterable URLs list\
 ✅ Follow website internal redirections\
-✅ Export all URL in CSV format\
+✅ Export all URLs in CSV format\
 ✅ Group reports by website\
 ✅ Quickly check a specific URL\
-✅ Real time changes propagation across all users\
+✅ Real-time changes propagation across all users\
 ✅ Documented GraphQL API\
 ✅ Translated in English and French\
+✅ Support SQLite, MariaDB (MySQL) and PostgreSQL
 ✅ Easy setup
 
 ## Screenshots
