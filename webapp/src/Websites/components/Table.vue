@@ -2,9 +2,9 @@
   <div class="relative">
     <DeleteWebsites v-slot="{ deleteWebsites }" @deleted="handleDeleted">
       <Table
-        :model-value="modelValue"
+        :modelValue
         v-bind="$attrs"
-        :columns="columns"
+        :columns
         class="text-slate-700 websites-table"
         @rowClick="
           $router.push({ name: 'site', params: { host: $event.host } })
@@ -52,20 +52,26 @@
             @click.stop
             class="opacity-0 [.websites-table_tr:hover_&]:opacity-100 transition-opacity duration-300"
           >
-            <NButton
-              text
-              type="primary"
-              @click="deleteWebsites([row.host])"
-              class="hover:!text-red-600 transition-colors"
-            >
-              <RiDeleteBin7Fill />
-            </NButton>
+            <NTooltip :disabled="!row.activeReports.totalCount">
+              <template #trigger>
+                <NButton
+                  text
+                  type="primary"
+                  :disabled="!!row.activeReports.totalCount"
+                  @click="deleteWebsites([row.host])"
+                  class="hover:!text-red-600 transition-colors"
+                >
+                  <RiDeleteBin7Fill />
+                </NButton>
+              </template>
+              {{ $t("A_REPORT_IS_IN_PROGRESS") }}
+            </NTooltip>
           </div>
         </template>
       </Table>
 
       <BulkActions
-        :model-value="modelValue"
+        :modelValue
         v-bind="$attrs"
         @bulkDelete="deleteWebsites($event.map(({ host }) => host))"
         class="absolute bottom-0"

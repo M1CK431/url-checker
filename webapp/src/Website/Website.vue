@@ -16,18 +16,28 @@
         </div>
 
         <div class="ml-4 font-semibold">
-          {{ $tc("{n}_REPORTS", website.reports.totalCount) }}
+          {{ $t("{n}_REPORTS", website.reports.totalCount) }}
         </div>
       </div>
 
       <div class="flex">
-        <GenerateReport :host="host" />
+        <GenerateReport :host />
 
-        <DeleteWebsites v-slot="{ deleteWebsites }">
+        <DeleteWebsites :to="{ name: 'sites' }" v-slot="{ deleteWebsites }">
           <div class="ml-4 pl-4 border-l border-slate-500">
-            <NButton type="primary" circle @click="deleteWebsites([host])">
-              <RiDeleteBin7Fill />
-            </NButton>
+            <NTooltip :disabled="!website.activeReports.totalCount">
+              <template #trigger>
+                <NButton
+                  type="primary"
+                  circle
+                  @click="deleteWebsites([host])"
+                  :disabled="!!website.activeReports.totalCount"
+                >
+                  <RiDeleteBin7Fill />
+                </NButton>
+              </template>
+              {{ $t("A_REPORT_IS_IN_PROGRESS") }}
+            </NTooltip>
           </div>
         </DeleteWebsites>
       </div>
@@ -47,8 +57,8 @@
       :error="errors.reports"
       v-model:sort="sort"
       @update:sort="reportsQueryVarsChange"
-      :reports="reports"
-      :no-match="noReportsMatch"
+      :reports
+      :noMatch="noReportsMatch"
       class="mt-6"
     />
   </Loader>
@@ -60,10 +70,13 @@ import DeleteWebsites from "@/Websites/components/DeleteWebsites.vue";
 import ReportsFilters from "./components/ReportsFilters/ReportsFilters.vue";
 import ReportsGallery, { Sort } from "./components/ReportsGallery.vue";
 import GenerateReport from "./components/GenerateReport.vue";
-import websiteReportsQuery from "./queries/websiteReports.query.gql";
-import reportSub from "./queries/report.subscription.gql";
-import gql from "graphql-tag";
-import { uniqBy } from "@/helpers.js";
+import {
+  websiteQuery,
+  websiteSubscription,
+  reportsQuery,
+  reportSubscription
+} from "./website.gql";
+import { uniqBy, deepCopy, info } from "@/helpers.js";
 import { ctx as appCtx } from "@/App.vue";
 
 const getFilters = (maxUrlsCount = 0) => ({
@@ -87,6 +100,7 @@ export default {
     website: {},
     reports: [],
     reportsTotalCount: 0,
+    processingReportsCount: 0,
     page: 1,
     errors: { website: "", reports: "" },
     search: "",
@@ -96,18 +110,7 @@ export default {
   }),
   apollo: {
     website: {
-      query: gql`
-        query ($host: String!) {
-          website(host: $host) {
-            host
-            faviconUrl
-            maxUrlsCount
-            reports {
-              totalCount
-            }
-          }
-        }
-      `,
+      query: websiteQuery,
       variables() {
         return { host: this.host };
       },
@@ -120,55 +123,32 @@ export default {
       error: (err, vm) => (vm.errors.website = err.toString())
     },
     reports: {
-      query: websiteReportsQuery,
+      query: reportsQuery,
       variables() {
         const { host, page, sort, search, filters, defaultFilters } = this;
         const apiFilters = Object.entries(filters).reduce(
           (acc, [key, filter]) =>
             filter && `${filter}` !== `${defaultFilters[key]}`
-              ? { ...acc, [key]: { start: filter[0], end: filter[1] } }
+              ? { ...acc, [key]: { gte: filter[0], lte: filter[1] } }
               : acc,
-          {}
+          { websiteHost: { equals: host } }
         );
 
-        return { host, sort, page, search, filters: apiFilters };
+        return {
+          host,
+          sort,
+          page,
+          filters: {
+            ...apiFilters,
+            ...(search && { url: { contains: search } })
+          }
+        };
       },
-      update({ website: { reports: { totalCount, entries } = {} } }) {
+      update({ reports: { totalCount, entries } }) {
         this.reportsTotalCount = totalCount;
-        return uniqBy([...this.reports, ...entries], "id");
+        return uniqBy([...this.reports, ...deepCopy(entries)], "id");
       },
       error: (err, vm) => (vm.errors.reports = err.toString())
-    },
-    $subscribe: {
-      websiteChange: {
-        query: gql`
-          subscription ($host: String!) {
-            website(host: $host) {
-              operation
-            }
-          }
-        `,
-        variables() {
-          return { host: this.host };
-        },
-        result({ data: { website: { operation } = {} } }) {
-          if (operation === "DELETE")
-            return this.$router.push({ name: "sites" });
-          this.$apollo.queries?.website.refetch();
-        }
-      },
-      reportChange: {
-        query: reportSub,
-        result({ data: { report: { operation, data } = {} } }) {
-          const prev = this.reports.find(({ id }) => id === data.id);
-          if (operation === "UPDATE") return prev && Object.assign(prev, data);
-
-          Object.assign(this, { page: 1, reports: [] });
-          Object.values(this.$apollo.queries || {}).forEach(query =>
-            query.refetch()
-          );
-        }
-      }
     }
   },
   computed: {
@@ -180,6 +160,47 @@ export default {
         ))
   },
   mounted() {
+    this.$subscribe.add(
+      { key: `website:${this.host}`, clearOnDelete: true },
+      { query: websiteSubscription, variables: { host: this.host } },
+      ({ data: { website } }) => {
+        const { operation, data: { host } = {} } = website;
+        const { name, params } = this.$route;
+        const isMounted = name === "site" && this.host === params.host;
+        if (operation !== "DELETE" || !isMounted) return;
+
+        info({
+          title: this.$t("REDIRECTION"),
+          content: this.$t("WEBSITE_{host}_DELETED", { host })
+        });
+
+        return this.$router.push({ name: "sites" });
+      }
+    );
+
+    this.$subscribe.add(
+      {
+        key: `website:${this.host}-reports`,
+        evictCache: { fieldName: "reports" }
+      },
+      { query: reportSubscription },
+      ({ data: { report: { operation, data } = {} } }) => {
+        if (data.website.host !== this.host) return;
+        delete data.website; // prevent side effect in ReportsGallery > ReportCard
+
+        if (operation === "CREATE")
+          return Object.assign(this, { page: 1, reports: [] });
+
+        const prevIdx = this.reports.findIndex(({ id }) => id === data.id);
+        if (prevIdx < 0) return;
+
+        if (operation === "UPDATE")
+          return Object.assign(this.reports[prevIdx], data);
+
+        operation === "DELETE" && this.reports.splice(prevIdx, 1);
+      }
+    );
+
     appCtx.onScroll = () =>
       !this.$apollo.loading &&
       this.reports.length < this.reportsTotalCount &&
@@ -198,11 +219,11 @@ export default {
     messages: {
       "en-US": {
         "{n}_REPORTS": "1 report | {n} reports",
-        SELECT_A_WEBSITE_URL: "Select a website URL"
+        "WEBSITE_{host}_DELETED": 'Website "{host}" deleted'
       },
       "fr-FR": {
         "{n}_REPORTS": "1 rapport | {n} rapports",
-        SELECT_A_WEBSITE_URL: "Sélection une URL du site"
+        "WEBSITE_{host}_DELETED": 'Site "{host}" supprimé'
       }
     }
   }

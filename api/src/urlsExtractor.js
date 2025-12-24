@@ -3,15 +3,19 @@ import { promisify } from "node:util";
 import { Parser, DomHandler } from "htmlparser2";
 import { filter, textContent } from "domutils";
 import { readFileSync } from "node:fs";
+import { parallelize } from "./helpers.js";
 
 const pExec = promisify(exec);
 const { CURL = "curl" } = process.env;
 
 // Si t'as pas d'ami...
 const curly = (url, out) =>
-  pExec(`${CURL} -sL -w '%{json}' -o '${out.replace(/'/g, `'"'"'`)}' '${url}'`);
+  pExec(`${CURL} -sL -w '%{json}' -o '${out.replace(/'/g, "'\"'\"'")}' '${url}'`);
 
-export const extractUrls = async url => {
+export const extractUrls = async (url, visited = new Set()) => {
+  if (visited.has(url)) return []; // avoid infinite loop
+  visited.add(url);
+
   const { host } = new URL(url);
   let { stdout: tmpFile } = await pExec(
     `mktemp /dev/shm/url-checker-${host}-XXX.html`
@@ -24,7 +28,7 @@ export const extractUrls = async url => {
 
   const dom = await new Promise((resolve, reject) => {
     const parser = new Parser(
-      new DomHandler((err, dom) => (err ? reject(err) : resolve(dom)))
+      new DomHandler((err, dom) => err ? reject(err) : resolve(dom))
     );
     parser.write(readFileSync(tmpFile, { encoding: "utf8" }));
     parser.end();
@@ -34,13 +38,25 @@ export const extractUrls = async url => {
 
   pExec(`rm ${tmpFile}`);
 
-  return [
-    ...new Set(
-      filter(({ name }) => ["loc", "image:loc"].includes(name), dom).map(
-        ({ children: [url] }) => textContent(url).replace(/\s+/g, "")
+  if (dom.some(node => node.name === "sitemapindex")) {
+    const sitemapUrls = filter(({ name }) => name === "loc", dom)
+      .map(({ children }) => textContent(children[0]).replace(/\s+/g, ""))
+      .filter(Boolean);
+
+    const allUrls = await parallelize(
+      sitemapUrls.map(sitemapUrl => () => extractUrls(sitemapUrl, visited))
+    );
+
+    return [...new Set(allUrls.flat())];
+  } else {
+    return [
+      ...new Set(
+        filter(({ name }) => ["loc", "image:loc"].includes(name), dom).map(
+          ({ children: [url] }) => textContent(url).replace(/\s+/g, "")
+        )
       )
-    )
-  ];
+    ];
+  }
 };
 
 export const getFaviconUrl = async url => {

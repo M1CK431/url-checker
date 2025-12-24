@@ -2,7 +2,7 @@
   <div class="flex">
     <NSelect
       v-model:value="url"
-      :placeholder="$t('SELECT_A_WEBSITE_URL')"
+      :placeholder="$t('SELECT_A_SITEMAP')"
       :options="sitemaps.map(value => ({ label: getPathname(value), value }))"
       :loading="$apollo.loading"
       tag
@@ -32,11 +32,11 @@ import gql from "graphql-tag";
 export default {
   props: { host: { type: String, required: true } },
   setup: () => ({ getPathname }),
-  data: () => ({ sitemaps: [], error: "", url: "", generating: false }),
+  data: () => ({ sitemaps: [], error: "", url: null, generating: false }),
   apollo: {
     sitemaps: {
       query: gql`
-        query ($host: String!) {
+        query ($host: ID!) {
           website(host: $host) {
             host
             sitemaps
@@ -48,25 +48,28 @@ export default {
       },
       update: ({ website: { sitemaps } }) => sitemaps,
       error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      report: {
-        query: gql`
-          subscription {
-            report {
-              operation
-            }
-          }
-        `,
-        result({ data: { operation } }) {
-          if (operation === "UPDATE") return;
-          this.queries?.sitemaps.refetch();
-        }
-      }
     }
   },
   computed: {
     isValidTarget: ({ url }) => isUrl(url)
+  },
+  mounted() {
+    this.$subscribe.add(
+      { key: "generateReport-website", clearOnDelete: true },
+      {
+        query: gql`
+          subscription {
+            website {
+              data {
+                host
+                sitemaps
+              }
+            }
+          }
+        `,
+        variables: { host: this.host }
+      }
+    );
   },
   methods: {
     onCreate(path) {
@@ -79,13 +82,18 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
               }
             }
           `,
-          variables: { url: this.url }
+          variables: { url: this.url },
+          update: (_cache, { data }) =>
+            this.$subscribe.handleMutation(
+              { operation: "CREATE", evictCache: { fieldName: "reports" } },
+              [data.generateReport]
+            )
         })
         .then(({ data: { generateReport: { id } } = {} }) => {
           success();
@@ -94,6 +102,12 @@ export default {
         })
         .catch(requestErrorHandler)
         .finally(() => (this.generating = false));
+    }
+  },
+  i18n: {
+    messages: {
+      "en-US": { SELECT_A_SITEMAP: "Select a sitemap" },
+      "fr-FR": { SELECT_A_SITEMAP: "Sélectionner un sitemap" }
     }
   }
 };

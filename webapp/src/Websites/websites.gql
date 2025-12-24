@@ -1,0 +1,39 @@
+fragment websiteFields on Website {
+  host
+  faviconUrl
+  updatedAt
+  reports(page: { current: 1, size: 1 }) {
+    totalCount
+    entries {
+      id
+      http5xxCount
+      http4xxCount
+      totalCount
+    }
+  }
+  activeReports: reports(filters: { status: { in: [PENDING, PROCESSING] } }) {
+    totalCount
+  }
+}
+
+query websitesQuery(
+  $filters: WebsiteFiltersInput
+  $sort: WebsiteSortInput
+  $page: PageInput!
+) {
+  websites(filters: $filters, sort: $sort, page: $page) {
+    totalCount
+    entries {
+      ...websiteFields
+    }
+  }
+}
+
+subscription websiteSubscription {
+  website {
+    operation
+    data {
+      ...websiteFields
+    }
+  }
+}

@@ -1,0 +1,24 @@
+datasource db {
+  provider = "sqlite" // DB:["sqlite"]
+  //provider = "mysql" // DB:["mysql"]
+  //provider = "postgresql" // DB:["postgresql"]
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider            = "prisma-client"
+  output              = "./generated/prisma"
+  importFileExtension = "ts"
+}
+
+generator pothos {
+  provider          = "prisma-pothos-types"
+  clientOutput      = "./prisma/client.ts"
+  output            = "./generated/pothos.ts"
+  generateDatamodel = true
+}
+
+generator dmmf {
+  provider = "./src/prisma-dmmf-generator.js"
+  output   = "./generated/prisma/dmmf.js"
+}

@@ -66,7 +66,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
                 website {
@@ -75,7 +75,12 @@ export default {
               }
             }
           `,
-          variables: { url: this.url }
+          variables: { url: this.url },
+          update: (_cache, { data }) =>
+            this.$subscribe.handleMutation(
+              { operation: "CREATE", evictCache: { fieldName: "reports" } },
+              [data.generateReport]
+            )
         })
         .then(({ data: { generateReport: { id, website } = {} } }) => {
           success();

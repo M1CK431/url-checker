@@ -1,9 +1,9 @@
 <template>
   <div class="flex items-end justify-between" :class="$attrs.class">
     <NCheckbox
-      :checked="!!selected.length && selected.length === reports.length"
-      @update:checked="selected = $event ? reports.map(({ id }) => id) : []"
-      :indeterminate="!!selected.length && selected.length < reports.length"
+      :checked="!!selected.length && selected.length === selectable.length"
+      @update:checked="selected = $event ? selectable.map(({ id }) => id) : []"
+      :indeterminate="!!selected.length && selected.length < selectable.length"
     >
       {{ $t("SELECT_ALL") }}
     </NCheckbox>
@@ -22,8 +22,8 @@
         :value="sort.order"
         @update:value="$emit('update:sort', { ...sort, order: $event })"
         :options="[
-          { label: $t('ASCENDING'), value: 'ASC' },
-          { label: $t('DESCENDING'), value: 'DESC' }
+          { label: $t('ASCENDING'), value: 'asc' },
+          { label: $t('DESCENDING'), value: 'desc' }
         ]"
         size="small"
       />
@@ -68,7 +68,7 @@ import { Loader, ReportCard, BulkActions } from "@/components";
 import DeleteReports from "@/Report/components/DeleteReports.vue";
 
 export function Sort() {
-  return { by: "updatedAt", order: "DESC" };
+  return { by: "updatedAt", order: "desc" };
 }
 
 export default {
@@ -82,6 +82,9 @@ export default {
     reports: { type: Array, default: () => [] }
   },
   data: () => ({ selected: [] }),
+  computed: {
+    selectable: ({ reports }) => reports.filter(r => r.status !== "PROCESSING")
+  },
   methods: {
     toggleSelected(id, evt) {
       const { selected } = this;

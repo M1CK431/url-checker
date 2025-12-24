@@ -1,0 +1,65 @@
+fragment websiteFields on Website {
+  host
+  maxUrlsCount
+  reports {
+    totalCount
+  }
+  activeReports: reports(filters: { status: { in: [PENDING, PROCESSING] } }) {
+    totalCount
+  }
+}
+
+query websiteQuery($host: ID!) {
+  website(host: $host) {
+    ...websiteFields
+    faviconUrl
+  }
+}
+
+subscription websiteSubscription($host: ID!) {
+  website(host: $host) {
+    operation
+    data {
+      ...websiteFields
+    }
+  }
+}
+
+fragment reportFields on Report {
+  id
+  createdAt
+  http1xxCount
+  http2xxCount
+  http3xxCount
+  http4xxCount
+  http5xxCount
+  totalCount
+  processedCount
+  status
+  errorReason
+}
+
+query reportsQuery(
+  $sort: ReportSortInput!
+  $page: Int!
+  $filters: ReportFiltersInput
+) {
+  reports(sort: $sort, page: { current: $page, size: 20 }, filters: $filters) {
+    totalCount
+    entries {
+      ...reportFields
+    }
+  }
+}
+
+subscription reportSubscription {
+  report {
+    operation
+    data {
+      ...reportFields
+      website {
+        host
+      }
+    }
+  }
+}

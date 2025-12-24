@@ -7,7 +7,10 @@
         <span>{{ $t("TOTAL_OF_CHECKED_WEBSITES") }}</span>
 
         <div class="font-semibold">
-          <NSpin v-if="$apollo.queries.websites.loading" class="mt-1" />
+          <NSpin
+            v-if="!websites.totalCount && $apollo.queries.websites.loading"
+            class="mt-1"
+          />
           <template v-else>{{ websites.totalCount || "-" }}</template>
         </div>
       </Card>
@@ -15,8 +18,11 @@
       <Card size="sm" class="text-center space-y-2 leading-none">
         <span>{{ $t("TOTAL_OF_GENERATED_REPORTS") }}</span>
         <div class="font-semibold">
-          <NSpin v-if="$apollo.queries.reportsCount.loading" class="mt-1" />
-          {{ reportsCount || "-" }}
+          <NSpin
+            v-if="!reportsCount && $apollo.queries.reportsCount.loading"
+            class="mt-1"
+          />
+          <template v-else>{{ reportsCount || "-" }}</template>
         </div>
       </Card>
 
@@ -24,10 +30,12 @@
         <span>{{ $t("TOTAL_OF_CHECKED_URLS") }}</span>
         <div class="font-semibold">
           <NSpin
-            v-if="$apollo.queries.checkResultsCount.loading"
+            v-if="
+              !checkResultsCount && $apollo.queries.checkResultsCount.loading
+            "
             class="mt-1"
           />
-          {{ checkResultsCount || "-" }}
+          <template v-else>{{ checkResultsCount || "-" }}</template>
         </div>
       </Card>
 
@@ -56,16 +64,16 @@
             <Table
               v-model="selected"
               :rows="websites.entries"
-              :get-key="({ host }) => host"
+              :getKey="({ host }) => host"
               :loading="$apollo.queries.websites.loading"
             />
 
             <div class="mt-4 flex justify-center">
               <NPagination
                 v-model:page="page.current"
-                :item-count="websites.totalCount"
-                :page-sizes="[10, 20, 30, 40, 50]"
-                show-size-picker
+                :itemCount="websites.totalCount"
+                :pageSizes="[10, 20, 30, 40, 50]"
+                showSizePicker
                 v-model:pageSize="page.size"
                 @update:pageSize="page.current = 1"
                 class="[&_.n-pagination-item]:font-semibold"
@@ -90,9 +98,7 @@ import { Card, Error, Loader } from "@/components";
 import Illustration from "./components/Illustration.vue";
 import Table from "./components/Table.vue";
 import { debounce } from "@/helpers.js";
-import websitesQuery from "./queries/websites.query.gql";
-import reportSub from "./queries/report.subscription.gql";
-import websiteSub from "./queries/website.subscription.gql";
+import { websitesQuery, websiteSubscription } from "./websites.gql";
 import gql from "graphql-tag";
 import GenerateReport from "./components/GenerateReport.vue";
 
@@ -100,7 +106,7 @@ export default {
   components: { Card, Error, Loader, Illustration, Table, GenerateReport },
   data: () => ({
     search: "",
-    sort: { by: "updatedAt", order: "DESC" },
+    sort: { by: "updatedAt", order: "desc" },
     websites: { totalCount: 0, entries: [] },
     page: { current: 1, size: 10 },
     reportsCount: 0,
@@ -112,8 +118,19 @@ export default {
     websites: {
       query: websitesQuery,
       variables() {
-        return { search: this.search, sort: this.sort, page: this.page };
+        return {
+          ...(this.search && { filters: { host: { contains: this.search } } }),
+          sort: this.sort,
+          page: this.page
+        };
       },
+      update: ({ websites: { totalCount, entries } }) => ({
+        totalCount,
+        entries: entries.map(w => ({
+          ...w,
+          unselectable: !!w.activeReports.totalCount
+        }))
+      }),
       error: (err, vm) => (vm.error = err.toString())
     },
     reportsCount: {
@@ -135,37 +152,19 @@ export default {
         }
       `,
       update: ({ checkResults }) => checkResults.totalCount
-    },
-    $subscribe: {
-      websiteChange: {
-        query: websiteSub,
-        result({ data: { website: { operation } = {} } }) {
-          if (operation === "UPDATE") return;
-          Object.values(this.$apollo.queries || {}).forEach(query =>
-            query.refetch()
-          );
-        }
-      },
-      reportChange: {
-        query: reportSub,
-        result({ data: { report: { operation, data: { status } } = {} } }) {
-          if (operation !== "UPDATE")
-            return Object.values(this.$apollo.queries || {}).forEach(query =>
-              query.refetch()
-            );
-
-          const outdatedQueries = ["websites", "checkResultsCount"].map(
-            query => this.$apollo.queries[query]
-          );
-
-          status === "PROCESSING"
-            ? outdatedQueries.forEach(query => query.startPolling(1000))
-            : outdatedQueries.forEach(query =>
-                setTimeout(() => query?.stopPolling(), 1000)
-              );
-        }
-      }
     }
+  },
+  mounted() {
+    this.$subscribe.add(
+      {
+        key: "websites",
+        evictCache: [
+          { fieldName: ["websites"] },
+          { on: [], fieldName: ["reports", "checkResults"] }
+        ]
+      },
+      { query: websiteSubscription }
+    );
   },
   methods: {
     handleSearch: debounce(function (search) {

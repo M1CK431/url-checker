@@ -1,0 +1,24 @@
+enum CheckStatus {
+  PROCESSING
+  ERROR
+  DONE
+}
+
+model CheckResult {
+  id        Int      @id @default(autoincrement())
+  url       String // DB:["sqlite"]
+  //url       String @db.VarChar(2083) // DB:["mysql","postgresql"]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responseCode Int?
+  redirectUrl  String? // DB:["sqlite"]
+  //redirectUrl  String? @db.VarChar(2083) // DB:["mysql","postgresql"]
+  size         Int         @default(0)
+  status       CheckStatus @default(PROCESSING)
+  errorReason  String?
+  duration     Float       @default(0)
+
+  reportId Int
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}

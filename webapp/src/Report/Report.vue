@@ -16,7 +16,7 @@
         </NButton>
 
         <span class="text-base font-semibold">
-          {{ $tc("{COUNT}_REPORTS", report.website.reports.totalCount) }}
+          {{ $t("{COUNT}_REPORTS", report.website.reports.totalCount) }}
         </span>
       </div>
 
@@ -52,9 +52,7 @@
 
           <div class="space-x-3">
             <span class="font-semibold">{{ $t("DURATION") }}:</span>
-            <span>
-              {{ elapsedTimeFormatter(Math.round(report.duration / 1000)) }}
-            </span>
+            <span>{{ duration }}</span>
           </div>
 
           <div class="space-x-3">
@@ -64,11 +62,21 @@
         </div>
 
         <div class="absolute left-4 bottom-4 flex gap-4">
-          <NButton type="primary" @click="generateReport" :loading="generating">
+          <NButton
+            type="primary"
+            @click="generateReport"
+            :loading="generating"
+            :disabled="['PENDING', 'PROCESSING'].includes(report.status)"
+          >
             {{ $t("CHECK") }}
           </NButton>
 
-          <NButton type="primary" circle @click="$refs.pieChart.exportAsPng()">
+          <NButton
+            type="primary"
+            circle
+            @click="$refs.pieChart.exportAsPng()"
+            :disabled="['PENDING', 'PROCESSING'].includes(report.status)"
+          >
             <RiDownload2Line class="text-base" />
           </NButton>
 
@@ -78,7 +86,12 @@
             }"
           >
             <template #default="{ deleteReports }">
-              <NButton type="primary" circle @click="deleteReports([reportId])">
+              <NButton
+                type="primary"
+                circle
+                @click="deleteReports([reportId])"
+                :disabled="report.status === 'PROCESSING'"
+              >
                 <RiDeleteBin7Fill />
               </NButton>
             </template>
@@ -88,7 +101,7 @@
 
       <div class="w-[30rem] relative flex items-center justify-start">
         <NProgress
-          v-if="report.status === 'PROCESSING'"
+          v-if="['PENDING', 'PROCESSING'].includes(report.status)"
           type="circle"
           :percentage="
             Math.round((report.processedCount / report.totalCount) * 100)
@@ -97,7 +110,7 @@
         />
 
         <div v-else class="absolute inset-y-0 w-[30rem] right-4">
-          <ReportPieChart ref="pieChart" v-bind="report" :offset-y="75" />
+          <ReportPieChart ref="pieChart" v-bind="report" :offsetY="75" />
         </div>
       </div>
 
@@ -107,7 +120,7 @@
     </Card>
   </Loader>
 
-  <CheckResults :report-id="reportId" />
+  <CheckResults :reportId="reportId" />
 </template>
 
 <script>
@@ -116,14 +129,18 @@ import Illustration from "./components/Illustration.vue";
 import PreviousReport from "./components/PreviousReport/PreviousReport.vue";
 import CheckResults from "./components/CheckResults/CheckResults.vue";
 import DeleteReports from "./components/DeleteReports.vue";
-import reportQuery from "./queries/report.query.gql";
-import reportSub from "./queries/report.subscription.gql";
+import {
+  reportQuery,
+  reportSubscription,
+  websiteSubscription
+} from "./report.gql";
 import gql from "graphql-tag";
 import {
   success,
   requestErrorHandler,
   elapsedTimeFormatter,
-  getRoundedPercent
+  getRoundedPercent,
+  info
 } from "@/helpers.js";
 
 export default {
@@ -138,28 +155,104 @@ export default {
     Status
   },
   inheritAttrs: false,
-  props: { reportId: { type: String, required: true } },
+  props: {
+    host: { type: String, required: true },
+    reportId: { type: String, required: true }
+  },
   setup: () => ({ elapsedTimeFormatter, getRoundedPercent }),
-  data: () => ({ report: {}, error: "", generating: false }),
+  data: () => ({
+    report: {},
+    error: "",
+    generating: false,
+    intervalId: null,
+    processingDuration: 0
+  }),
   apollo: {
     report: {
       query: reportQuery,
       variables() {
         return { id: this.reportId };
       },
-      error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      reportChange: {
-        query: reportSub,
-        variables() {
-          return { id: this.reportId };
+      result({ data: { report } }) {
+        if (report.status === "PROCESSING" && !this.intervalId) {
+          const now = Date.now();
+          const [{ updatedAt = now } = {}] = report.oldestCheckResult.entries;
+          this.processingDuration = now - new Date(updatedAt);
+          this.intervalId = setInterval(
+            () => (this.processingDuration += 1000),
+            1000
+          );
         }
-      }
+
+        if (report.status !== "PROCESSING" && this.intervalId)
+          clearInterval(this.intervalId);
+      },
+      error: (err, vm) => (vm.error = err.toString())
     }
   },
   computed: {
-    urlPathname: ({ report: { url } }) => url && new URL(url).pathname
+    urlPathname: ({ report: { url } }) => url && new URL(url).pathname,
+    duration: ({ report, processingDuration }) =>
+      elapsedTimeFormatter(
+        Math.round(
+          (report.status === "PROCESSING"
+            ? processingDuration
+            : report.duration) / 1000
+        )
+      )
+  },
+  watch: {
+    reportId: {
+      immediate: true,
+      handler() {
+        const { host, reportId } = this;
+
+        this.$subscribe.add(
+          { key: `report:${reportId}-website`, clearOnDelete: true },
+          { query: websiteSubscription, variables: { host } },
+          ({ data: { website } }) => {
+            const { operation } = website;
+            const { name, params } = this.$route;
+            const isMounted = name === "report" && reportId === params.reportId;
+            if (operation !== "DELETE" || !isMounted) return;
+
+            info({
+              title: this.$t("REDIRECTION"),
+              content: this.$t("WEBSITE_{HOST}_DELETED", { host })
+            });
+
+            return this.$router.push({ name: "sites" });
+          }
+        );
+
+        this.$subscribe.add(
+          { key: `report:${this.reportId}`, clearOnDelete: true },
+          { query: reportSubscription, variables: { id: this.reportId } },
+          ({ data: { report } }) => {
+            const { operation, data } = report;
+            const { name, params } = this.$route;
+            const isMounted =
+              name === "report" && this.reportId === params.reportId;
+            if (operation !== "DELETE" || !isMounted) return;
+
+            info({
+              title: this.$t("REDIRECTION"),
+              content: this.$t("REPORT_DELETED")
+            });
+
+            const { host, reports } = data.website;
+            return this.$router.push(
+              reports.totalCount > 1
+                ? { name: "site", params: { host } }
+                : { name: "sites" }
+            );
+          }
+        );
+      }
+    }
+  },
+  unmounted() {
+    clearInterval(this.intervalId);
   },
   methods: {
     generateReport() {
@@ -168,7 +261,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation ($url: String!) {
+            mutation ($url: URL!) {
               generateReport(url: $url) {
                 id
               }
@@ -186,8 +279,16 @@ export default {
   },
   i18n: {
     messages: {
-      "en-US": { "{COUNT}_REPORTS": "1 report | {n} reports" },
-      "fr-FR": { "{COUNT}_REPORTS": "1 rapport | {n} rapports" }
+      "en-US": {
+        "{COUNT}_REPORTS": "1 report | {n} reports",
+        "WEBSITE_{HOST}_DELETED": "Website {host} deleted",
+        REPORT_DELETED: "Report deleted"
+      },
+      "fr-FR": {
+        "{COUNT}_REPORTS": "1 rapport | {n} rapports",
+        "WEBSITE_{HOST}_DELETED": "Site {host} supprimé",
+        REPORT_DELETED: "Rapport supprimé"
+      }
     }
   }
 };

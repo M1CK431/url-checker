@@ -15,12 +15,12 @@
     <ResponseCodeTypeFilter
       v-model="filters.responseCode"
       @update:modelValue="page.current = 1"
-      :report-id="reportId"
+      :reportId="reportId"
     />
 
     <Card>
       <div class="text-right mb-1">
-        <ExportAsCsv :report-id="reportId" />
+        <ExportAsCsv :reportId="reportId" />
       </div>
 
       <Table
@@ -94,7 +94,7 @@
         </template>
 
         <template #status="{ status, row: { errorReason } }">
-          <Status :status="status" :error-reason="errorReason" />
+          <Status :status="status" :errorReason="errorReason" />
         </template>
 
         <template #actions="{ row }">
@@ -114,9 +114,9 @@
       <div class="mt-4 flex justify-center">
         <NPagination
           v-model:page="page.current"
-          :item-count="totalCount"
-          :page-sizes="[10, 20, 30, 40, 50]"
-          show-size-picker
+          :itemCount="totalCount"
+          :pageSizes="[10, 20, 30, 40, 50]"
+          showSizePicker
           v-model:pageSize="page.size"
           @update:pageSize="page.current = 1"
           class="[&_.n-pagination-item]:font-semibold"
@@ -131,8 +131,7 @@
 <script>
 import { Loader, Card, Table, ResponseCode, Status } from "@/components";
 import ExportAsCsv from "./components/ExportAsCsv/ExportAsCsv.vue";
-import reportCheckResultsQuery from "./queries/reportCheckResults.query.gql";
-import reportSub from "./queries/report.subscription.gql";
+import { checkResultsQuery, reportSubscription } from "./checkResults.gql";
 import {
   debounce,
   sizeFormatter,
@@ -143,11 +142,11 @@ import ResponseCodeTypeFilter from "./components/ResponseCodeTypeFilter.vue";
 import RecheckUrl from "./components/RecheckUrl.vue";
 
 function Filters() {
-  return { responseCode: null };
+  return { responseCode: undefined };
 }
 
 function Sort() {
-  return { by: "url", order: "ASC" };
+  return { by: "url", order: "asc" };
 }
 
 export default {
@@ -198,6 +197,21 @@ export default {
       JSON.stringify(filters) !== JSON.stringify(new Filters()) ||
       JSON.stringify(sort) !== JSON.stringify(new Sort())
   },
+  watch: {
+    reportId: {
+      immediate: true,
+      handler() {
+        this.$subscribe.add(
+          {
+            key: `reportCheckResults:${this.reportId}`,
+            evictCache: { on: [], fieldName: "checkResults" },
+            clearOnDelete: true
+          },
+          { query: reportSubscription, variables: { id: this.reportId } }
+        );
+      }
+    }
+  },
   methods: {
     handleSearch: debounce(function (search) {
       this.debouncedSearch = search;
@@ -214,36 +228,25 @@ export default {
   },
   apollo: {
     checkResults: {
-      fetchPolicy: "network-only",
-      query: reportCheckResultsQuery,
+      query: checkResultsQuery,
       variables() {
         const { reportId, page, sort, debouncedSearch, filters } = this;
 
-        return { id: reportId, page, sort, search: debouncedSearch, filters };
+        return {
+          page,
+          sort,
+          filters: {
+            ...filters,
+            ...(debouncedSearch && { url: { contains: debouncedSearch } }),
+            reportId: { equals: +reportId }
+          }
+        };
       },
-      update({ report: { checkResults: { totalCount, entries } = {} } }) {
+      update({ checkResults: { totalCount, entries } }) {
         this.totalCount = totalCount;
         return entries;
       },
       error: (err, vm) => (vm.error = err.toString())
-    },
-    $subscribe: {
-      reportChange: {
-        query: reportSub,
-        variables() {
-          return { id: this.reportId };
-        },
-        result({ data: { report: { operation, data: { status } } = {} } }) {
-          if (operation === "DELETE") return;
-
-          status === "PROCESSING"
-            ? this.$apollo.queries.checkResults.startPolling(1000)
-            : setTimeout(
-                () => this.$apollo?.queries.checkResults.stopPolling(),
-                1000
-              );
-        }
-      }
     }
   },
   i18n: {

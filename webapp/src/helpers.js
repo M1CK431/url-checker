@@ -1,11 +1,11 @@
-import { t, tc } from "@/plugins/i18n.js";
+import { t } from "@/plugins/i18n.js";
 import { notification } from "@/plugins/naiveUI.js";
 import { allowedDomains } from "@/plugins/allowedDomains.js";
 
 const notificationOptions = { duration: 4500, keepAliveOnHover: true };
 const renderContent = content => () => h("span", { innerHTML: content });
 
-export const error = ({ title = tc("ERROR"), content, ...rest }) =>
+export const error = ({ title = t("ERROR"), content, ...rest }) =>
   notification.error({
     title,
     ...(content && { content: renderContent(content) }),
@@ -14,6 +14,14 @@ export const error = ({ title = tc("ERROR"), content, ...rest }) =>
   });
 
 export const requestErrorHandler = err => error({ content: err.toString() });
+
+export const info = ({ title = t("INFO"), content, ...rest } = {}) =>
+  notification.info({
+    title,
+    ...(content && { content: renderContent(content) }),
+    ...notificationOptions,
+    ...rest
+  });
 
 export const success = ({ title = t("SUCCESS"), content, ...rest } = {}) =>
   notification.success({
@@ -46,6 +54,8 @@ const dateParts = [
 ];
 
 export const elapsedTimeFormatter = duration => {
+  if (!duration) return "0s";
+
   const d = new Date(0, 0, 0);
   d.setSeconds(duration);
 
@@ -86,8 +96,6 @@ export const isAllowedDomain = url =>
 
 export const getPathname = url => new URL(url).pathname;
 
-export const deepCopy = obj => JSON.parse(JSON.stringify(obj));
-
 export const uniqBy = (arr, predicate) => {
   const cb = typeof predicate === "function" ? predicate : o => o[predicate];
 
@@ -103,3 +111,15 @@ export const uniqBy = (arr, predicate) => {
       .values()
   ];
 };
+
+export const deepCopy = (obj, exclude = []) =>
+  JSON.parse(
+    JSON.stringify(obj, (key, value) =>
+      exclude.includes(key) ? undefined : value
+    )
+  );
+
+export const noTypename = obj => deepCopy(obj, ["__typename"]);
+
+export const getFrom = (obj, keys) =>
+  keys.reduce((acc, k) => ((acc[k] = obj[k]), acc), {});

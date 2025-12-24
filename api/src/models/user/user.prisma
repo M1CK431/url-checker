@@ -1,0 +1,10 @@
+model User {
+  id         Int       @id @default(autoincrement())
+  identifier String    @unique
+  password   String
+  enabled    Boolean   @default(true)
+  lastLogin  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deleted    Boolean?  @default(false)
+}

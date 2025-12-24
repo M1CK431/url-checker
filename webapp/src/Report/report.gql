@@ -1,0 +1,61 @@
+fragment reportFields on Report {
+  id
+  processedCount
+  totalCount
+  status
+  duration
+  errorReason
+  http1xxCount
+  http2xxCount
+  http3xxCount
+  http4xxCount
+  http5xxCount
+}
+
+query reportQuery($id: ID!) {
+  report(id: $id) {
+    ...reportFields
+    url
+    createdAt
+    website {
+      host
+      faviconUrl
+      reports {
+        totalCount
+      }
+    }
+    oldestCheckResult: checkResults(
+      page: { current: 1, size: 1 }
+      sort: { by: updatedAt, order: asc }
+    ) {
+      entries {
+        id
+        updatedAt
+      }
+    }
+  }
+}
+
+subscription reportSubscription($id: ID!) {
+  report(id: $id) {
+    operation
+    data {
+      ...reportFields
+      website {
+        host
+        reports {
+          totalCount
+        }
+      }
+    }
+  }
+}
+
+subscription websiteSubscription($host: ID!) {
+  website(host: $host) {
+    operation
+    data {
+      host
+    }
+  }
+}

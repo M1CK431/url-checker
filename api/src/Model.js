@@ -1,189 +1,97 @@
-import { DataTypes, Op } from "sequelize";
-import {
-  GraphQLObjectType,
-  GraphQLInputObjectType,
-  GraphQLString,
-  GraphQLID,
-  GraphQLInt,
-  GraphQLEnumType,
-  GraphQLNonNull,
-  GraphQLFloat
-} from "graphql";
-import { db } from "./db.js";
-import {
-  GraphQLDateTime,
-  DateTimeRangeInput,
-  IntRangeInput,
-  FloatRangeInput,
-  getEnumListType
-} from "./common.js";
-import { getNonNullFields } from "./helpers.js";
+import { models, enums } from "./generated/prisma/dmmf.js";
+import schemaBuilder from "./schemaBuilder.js";
+import db from "./db.js";
 
-const fnFallback = fn => (typeof fn === "function" ? fn() : fn);
+const Order = schemaBuilder.enumType("Order", { values: ["asc", "desc"] });
 
-const dbCommon = ({ primaryKey, nullable, defaultValue, description }) => ({
-  ...(primaryKey && { primaryKey }),
-  ...(nullable !== undefined && { allowNull: nullable }),
-  ...(defaultValue !== undefined && { defaultValue }),
-  ...(description !== undefined && { comment: description })
-});
+const lowerFirst = str => str.charAt(0).toLowerCase() + str.slice(1);
 
-const gqlCommon = ({
-  type,
-  primaryKey,
-  defaultValue,
-  nullable = primaryKey || defaultValue === undefined,
-  description
-}) => ({ type: nullable ? type : new GraphQLNonNull(type), description });
-
-const Order = new GraphQLEnumType({
-  name: "Order",
-  values: { ASC: {}, DESC: {} }
-});
-
-const types = {
-  id: {
-    db: () => ({
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    }),
-    gql: () => ({ type: new GraphQLNonNull(GraphQLID) })
-  },
-  string: {
-    db: ({ length, ...rest }) => ({
-      type: length ? DataTypes.STRING(length) : DataTypes.STRING,
-      ...dbCommon(rest)
-    }),
-    gql: field => gqlCommon({ type: GraphQLString, ...field }),
-    gqlFilter: () => ({ type: GraphQLString }),
-    dbFilter: str => str
-  },
-  int: {
-    db: field => ({ type: DataTypes.INTEGER, ...dbCommon(field) }),
-    gql: field => gqlCommon({ type: GraphQLInt, ...field }),
-    gqlFilter: () => ({ type: IntRangeInput }),
-    dbFilter: ({ start, end }) => ({
-      ...(Number.isFinite(start) && { [Op.gte]: start }),
-      ...(Number.isFinite(end) && { [Op.lte]: end })
-    })
-  },
-  float: {
-    db: field => ({ type: DataTypes.FLOAT, ...dbCommon(field) }),
-    gql: field => gqlCommon({ type: GraphQLFloat, ...field }),
-    gqlFilter: () => ({ type: FloatRangeInput }),
-    dbFilter: ({ start, end }) => ({
-      ...(Number.isFinite(start) && { [Op.gte]: start }),
-      ...(Number.isFinite(end) && { [Op.lte]: end })
-    })
-  },
-  date: {
-    db: field => ({ type: DataTypes.DATE, ...dbCommon(field) }),
-    gql: field => gqlCommon({ type: GraphQLDateTime, ...field }),
-    gqlFilter: () => ({ type: DateTimeRangeInput }),
-    dbFilter: ({ start, end }) => ({
-      ...(start && { [Op.gte]: start }),
-      ...(end && { [Op.lte]: end })
-    })
-  },
-  enum: {
-    db: ({ values, ...rest }) => ({
-      type: DataTypes.ENUM(values),
-      ...dbCommon(rest)
-    }),
-    gql: ({ name, values, ...rest }) =>
-      gqlCommon({
-        type: new GraphQLEnumType({
-          name,
-          values: values.reduce((acc, v) => ({ ...acc, [v]: {} }), {})
-        }),
-        ...rest
-      }),
-    gqlFilter: ({ name, values }) => ({ type: getEnumListType(name, values) }),
-    dbFilter: values => values
-  }
+const prismaOps = {
+  String: ["contains", "startsWith", "endsWith", "equals"],
+  Int: ["equals", "gt", "gte", "lt", "lte"],
+  Float: ["equals", "gt", "gte", "lt", "lte"],
+  Boolean: ["equals"],
+  DateTime: ["equals", "gt", "gte", "lt", "lte"]
 };
 
-function Model(name, fields) {
-  Object.assign(this, {
-    [`${name}DbModel`]: db.define(
-      name,
-      Object.entries(fields).reduce(
-        (acc, [k, { type, gqlOnly, ...rest }]) =>
-          gqlOnly || ["createdAt", "updatedAt"].includes(k)
-            ? acc
-            : {
-                ...acc,
-                [k]: types[type]?.db(rest) ?? { type, ...rest }
-              },
+for (const type in prismaOps) {
+  schemaBuilder.inputType(`${type}FilterInput`, {
+    fields: t =>
+      prismaOps[type].reduce(
+        (acc, op) => (acc[op] = t.field({ type }), acc),
         {}
       )
-    ),
+  });
+}
 
-    [`${name}GqlType`]: new GraphQLObjectType({
-      name,
-      fields: () =>
-        Object.entries(fields).reduce(
-          (acc, [k, { type, args, dbOnly, ...rest }]) =>
-            dbOnly
-              ? acc
-              : {
-                  ...acc,
-                  [k]: types[type]?.gql(rest) ?? {
-                    // custom type may be a closure function to handle mutual gql type dependency
-                    type: fnFallback(type),
-                    // args may be a closure function if shared in a mutual gql dependency
-                    args: fnFallback(args),
-                    ...rest
-                  }
-                },
-          {}
-        )
-    }),
+enums.forEach(({ name, values }) => {
+  schemaBuilder.enumType(name, { values: values.map(({ name }) => name) });
 
-    [`${name}GqlFiltersType`]: new GraphQLInputObjectType({
-      name: `${name}Filters`,
-      fields: () =>
-        Object.entries(fields).reduce(
-          (acc, [k, { type, name, ...rest }]) =>
-            ["id", "errorReason"].includes(k) || !types[type]
-              ? acc
-              : {
-                  ...acc,
-                  [k]: types[type].gqlFilter({ name: `${name}Filter`, ...rest })
-                },
-          {}
-        )
-    }),
-
-    [`${name}DbFilters`]: filters =>
-      Object.entries(filters).reduce(
-        (acc, [k, v]) =>
-          [undefined, null].includes(v)
-            ? acc
-            : { ...acc, [k]: types[fields[k].type].dbFilter(v) },
+  schemaBuilder.inputType(`${name}FilterInput`, {
+    fields: t => ({
+      ...["equals", "not"].reduce(
+        (acc, op) => (acc[op] = t.field({ type: name }), acc),
         {}
       ),
+      ...["in", "notIn"].reduce(
+        (acc, op) => (acc[op] = t.field({ type: [name] }), acc),
+        {}
+      )
+    })
+  });
+});
 
-    [`${name}GqlSortType`]: new GraphQLInputObjectType({
-      name: `${name}Sort`,
-      fields: () =>
-        getNonNullFields({
-          by: {
-            type: new GraphQLEnumType({
-              name: `${name}SortFields`,
-              values: Object.entries(fields).reduce(
-                (acc, [k, { gqlOnly }]) =>
-                  gqlOnly ? acc : { ...acc, [k]: {} },
-                {}
-              )
-            })
-          },
-          order: { type: Order }
-        })
+function Model(name, { gqlOverrides = {}, additionalFields = () => {} } = {}) {
+  const { fields } = models.find(m => m.name === name);
+  const foreignKeys = fields.flatMap(f => f.relationFields ?? []);
+
+  Object.assign(this, {
+    [`${name}DbFields`]: fields,
+
+    [`${name}DbModel`]: db[lowerFirst(name)],
+
+    [`${name}GqlType`]: schemaBuilder.prismaObject(name, {
+      fields: t => ({
+        ...fields.reduce((acc, { name, type, isId, relationName }) => {
+          if (foreignKeys.includes(name)) return acc;
+
+          acc[name] = relationName
+            ? t.relation(name)
+            : t.expose(name, { type: isId ? "ID" : type, ...gqlOverrides[name] });
+
+          return acc;
+        }, {}),
+        ...additionalFields(t)
+      })
     }),
 
-    [`${name}DbSort`]: ({ by, order }) => [[by, order]]
+    [`${name}GqlFiltersType`]: schemaBuilder.inputType(`${name}FiltersInput`, {
+      fields: t => fields.reduce((acc, { kind, name, type }) => {
+        if (["scalar", "enum"].includes(kind))
+          acc[name] = t.field({ type: `${type}FilterInput` });
+
+        return acc;
+      }, {})
+    }),
+
+    [`${name}GqlSortType`]: schemaBuilder.inputType(`${name}SortInput`, {
+      fields: t => ({
+        by: t.field({
+          type: schemaBuilder.enumType(
+            `${name}SortBy`,
+            {
+              values: fields.reduce((acc, { kind, name }) => {
+                if (!["scalar", "enum"].includes(kind)) return acc;
+                return acc.push(name), acc;
+              }, [])
+            }
+          )
+        }),
+        order: t.field({ type: Order })
+      })
+    }),
+
+    [`${name}DbSort`]: ({ by, order }) => [{ [by]: order }]
   });
 }
 

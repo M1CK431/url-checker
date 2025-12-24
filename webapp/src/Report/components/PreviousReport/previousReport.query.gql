@@ -1,9 +1,9 @@
-query ($host: String!, $url: String!, $before: DateTime!) {
+query ($host: ID!, $url: String!, $before: DateTime!) {
   website(host: $host) {
     host
     reports(
-      filters: { url: $url, updatedAt: { end: $before } }
-      sort: { by: updatedAt, order: DESC }
+      filters: { url: { equals: $url }, updatedAt: { lt: $before } }
+      sort: { by: updatedAt, order: desc }
       page: { current: 1, size: 1 }
     ) {
       entries {
