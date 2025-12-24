@@ -18,7 +18,7 @@ URL Checker is a **self-hosted** solution which can help you to **detect** any *
 ✅ Real-time changes propagation across all users\
 ✅ Documented GraphQL API\
 ✅ Translated in English and French\
-✅ Support SQLite, MariaDB (MySQL) and PostgreSQL
+✅ Support SQLite, MariaDB (MySQL) and PostgreSQL\
 ✅ Easy setup
 
 ## Screenshots
@@ -41,6 +41,12 @@ URL Checker is a **self-hosted** solution which can help you to **detect** any *
 | :-----------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
 |                             *Report details (1)*                             |                             *Report details (2)*                             |                             *Report details (3)*                             |
 
+### User management
+
+| <img alt="screenshot" src="./screenshots/users-list.png" width="256" /> | <img alt="screenshot" src="./screenshots/user-details.png" width="256" /> | <img alt="screenshot" src="./screenshots/user-creation.png" width="256" /> |
+| :-----------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
+|                             *Users list*                             |                             *User details*                             |                             *User creation*                             |
+
 ## Setup
 
 ### Prerequisites
@@ -61,6 +67,10 @@ This project is gracefully sponsored by:
 
 <img alt="logo Le Guide du Patrimoine" src="https://www.leguidedupatrimoine.com/assets/ico/apple-touch-icon-144-precomposed.png" height="64" />\
 [Le Guide du Patrimoine](https://www.leguidedupatrimoine.com)
+
+If you find this project useful, please consider giving it a **star ⭐ on GitHub** to show your support!
+
+If you'd like to go a step further, you can also **buy me a coffee** ☕ via [Buy Me a Coffee](https://www.buymeacoffee.com/m1ck431). Your support helps me keep building great open-source projects like this one. Thank you! 🙏
 
 ## Contribution
 
