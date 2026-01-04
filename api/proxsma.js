@@ -44,7 +44,7 @@ const prismaCLI = (cmd, args) => spawnSync(
 switch (cmd) {
 case "generate":
   await changeDbProvider();
-  prismaCLI(cmd, ["--schema", "src/", ...args]);
+  prismaCLI(cmd, args);
   break;
 
 case "reset":
@@ -57,7 +57,7 @@ case "reset":
         .map(f => unlink(f.split(":")[1]))
     ).catch(() => {});
 
-  prismaCLI("db", ["push", "--force-reset", "--schema", "src/", ...args]);
+  prismaCLI("db", ["push", "--force-reset", ...args]);
   break;
 
 default:
