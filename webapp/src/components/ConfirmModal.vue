@@ -6,9 +6,9 @@
       :showIcon="false"
       :closable="false"
       :positiveText="$t('CONFIRM')"
-      :negativeButtonProps="{ text: true, class: '!mr-8' }"
+      :negativeButtonProps="{ text: true, class: 'mr-8!' }"
       :negativeText="$t('CANCEL')"
-      class="!w-96 rounded-xl bg-gradient-to-br from-white/90 to-white/70"
+      class="w-96! rounded-xl bg-linear-to-br! from-white/90 to-white/70"
     >
       <div class="font-semibold mb-6">
         {{ $t("THIS_ACTION_CANNOT_BE_CANCELED") }}

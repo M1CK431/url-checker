@@ -59,7 +59,7 @@
                   type="primary"
                   :disabled="!!row.activeReports.totalCount"
                   @click="deleteWebsites([row.host])"
-                  class="hover:!text-red-600 transition-colors"
+                  class="hover:text-red-600! transition-colors"
                 >
                   <RiDeleteBin7Fill />
                 </NButton>

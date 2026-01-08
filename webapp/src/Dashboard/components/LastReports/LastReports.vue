@@ -1,6 +1,6 @@
 <template>
   <Loader as="div" :loading="$apollo.loading" :error="error">
-    <Card v-if="!reports[0]" class="h-[24rem] flex items-center justify-center">
+    <Card v-if="!reports[0]" class="h-96 flex items-center justify-center">
       <div class="text-slate-500 text-sm text-center">
         <div class="font-semibold">
           {{ $t("HERE_WILL_APPEAR_YOUR_LATEST_REPORTS") }}
@@ -11,7 +11,7 @@
 
     <div
       v-else
-      class="overflow-y-hidden h-[22rem] flex items-start -mb-14 -mx-8 px-8"
+      class="overflow-y-hidden h-88 flex items-start -mb-14 -mx-8 px-8"
     >
       <div
         class="flex flex-wrap gap-x-6 gap-y-20 w-full"

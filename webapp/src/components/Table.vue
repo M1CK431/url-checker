@@ -94,7 +94,7 @@
           <tr
             class="bg-white/80 text-slate-700"
             :class="[
-              { 'cursor-pointer hover:shadow rounded-xl': onRowClick },
+              { 'cursor-pointer hover:shadow-sm rounded-xl': onRowClick },
               row.className
             ]"
             @click="handleRowClick({ row, index })"

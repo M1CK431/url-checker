@@ -36,7 +36,7 @@
           :disabled="cantCreate"
           :loading="creating"
           @click="create"
-          class="!mt-8"
+          class="block! mt-8!"
         >
           {{ $t("CREATE") }}
         </NButton>

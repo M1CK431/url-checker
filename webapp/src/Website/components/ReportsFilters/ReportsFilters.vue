@@ -13,7 +13,7 @@
       </NButton>
     </div>
 
-    <div class="flex gap-4 mb-4">
+    <div class="grid grid-cols-5 gap-4 mb-4">
       <NDatePicker
         :value="filters.updatedAt && filters.updatedAt.map(d => +d)"
         @update:value="
@@ -26,7 +26,6 @@
         type="daterange"
         :actions="null"
         closeOnSelect
-        class="w-1/4"
       />
 
       <PopoverSelectSlider
@@ -43,7 +42,6 @@
         :description="getFilterRangeDescription(key)"
         :selectProps="{
           placeholder,
-          class: 'w-1/4',
           onClear: () => resetFilters(key)
         }"
       />
