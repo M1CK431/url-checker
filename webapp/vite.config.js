@@ -7,6 +7,8 @@ import Components from "unplugin-vue-components/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
+import tailwindAutoReference from "vite-plugin-vue-tailwind-auto-reference";
+import tailwindcss from "@tailwindcss/vite";
 
 import { disableFragmentWarnings } from "graphql-tag";
 disableFragmentWarnings();
@@ -19,6 +21,8 @@ export default defineConfig({
   server: { port: 8080 },
   plugins: [
     vue(),
+    tailwindAutoReference("./src/assets/tailwind.css"),
+    tailwindcss(),
     graphql(),
     AutoImport({
       imports: [

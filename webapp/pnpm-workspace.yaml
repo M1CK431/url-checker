@@ -1,2 +1,3 @@
 onlyBuiltDependencies:
   - esbuild
+  - vite-plugin-vue-tailwind-auto-reference
