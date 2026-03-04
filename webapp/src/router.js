@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import usersRoutes from "./Users/routes.js";
 
+const isProdEnv = import.meta.env.MODE === "production";
+
 export const routes = [
   {
     path: "/",
@@ -24,7 +26,12 @@ export const routes = [
     props: true,
     component: () => import("@/Report/Report.vue")
   },
-  ...usersRoutes
+  ...usersRoutes,
+  isProdEnv || {
+    path: "/devtools",
+    name: "devtools",
+    component: () => import("@/DevTools/DevTools.vue")
+  }
 ];
 
 export const router = createRouter({
