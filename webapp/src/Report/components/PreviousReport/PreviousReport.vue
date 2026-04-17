@@ -46,7 +46,7 @@
         class="text-center"
       >
         <div class="flex items-center mb-1">
-          <div class="p-0.5 mr-1.5 bg-slate-500/10 rounded">
+          <div class="p-0.5 mr-1.5 bg-slate-500/10 rounded-sm">
             <RiArrowRightUpLine
               v-if="value > 0"
               :class="{ 'text-red-600': key !== 'totalCount' }"

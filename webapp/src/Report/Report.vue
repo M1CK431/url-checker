@@ -99,7 +99,7 @@
         </div>
       </div>
 
-      <div class="w-[30rem] relative flex items-center justify-start">
+      <div class="w-120 relative flex items-center justify-start">
         <NProgress
           v-if="['PENDING', 'PROCESSING'].includes(report.status)"
           type="circle"
@@ -109,7 +109,7 @@
           class="ml-16 scale-[2.25]"
         />
 
-        <div v-else class="absolute inset-y-0 w-[30rem] right-4">
+        <div v-else class="absolute inset-y-0 w-120 right-4">
           <ReportPieChart ref="pieChart" v-bind="report" :offsetY="75" />
         </div>
       </div>

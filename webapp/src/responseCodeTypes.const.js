@@ -1,5 +1,5 @@
 import { t, mergeLocalesMessages } from "@/plugins/i18n.js";
-import { green, blue, yellow, orange, red } from "tailwindcss/colors";
+import { getRgbTwColor } from "@/helpers.js";
 
 mergeLocalesMessages({
   "en-US": {
@@ -19,9 +19,9 @@ mergeLocalesMessages({
 });
 
 export default {
-  1: { label: t("INFORMATION"), color: blue[700] },
-  2: { label: t("SUCCESS"), color: green[600] },
-  3: { label: t("REDIRECTION"), color: yellow[500] },
-  4: { label: t("CLIENT_ERROR"), color: orange[400] },
-  5: { label: t("SERVER_ERROR"), color: red[600] }
+  1: { label: t("INFORMATION"), color: getRgbTwColor("blue", 700) },
+  2: { label: t("SUCCESS"), color: getRgbTwColor("green", 600) },
+  3: { label: t("REDIRECTION"), color: getRgbTwColor("yellow", 500) },
+  4: { label: t("CLIENT_ERROR"), color: getRgbTwColor("orange", 400) },
+  5: { label: t("SERVER_ERROR"), color: getRgbTwColor("red", 600) }
 };

@@ -51,7 +51,7 @@ a:hover {
 /* custom scrollbar */
 div {
   /* Mozilla firefox */
-  scrollbar-color: theme(colors.slate.700) transparent;
+  scrollbar-color: var(--color-slate-700) transparent;
 }
 
 /* Global */

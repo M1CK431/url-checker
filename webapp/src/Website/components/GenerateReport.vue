@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="flex gap-2">
     <NSelect
       v-model:value="url"
       :placeholder="$t('SELECT_A_SITEMAP')"
@@ -18,7 +18,6 @@
       :loading="generating"
       type="primary"
       @click="checkWebsite"
-      class="ml-2"
     >
       {{ $t("CHECK") }}
     </NButton>

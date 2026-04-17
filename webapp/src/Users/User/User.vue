@@ -69,7 +69,7 @@
             @update:isValid="isPasswordValid = $event"
           />
 
-          <div class="!mt-6 flex gap-2">
+          <div class="mt-6! flex gap-2">
             <NButton
               attrType="submit"
               type="primary"
@@ -102,7 +102,7 @@
             :key
             class="space-y-4"
           >
-            <label>{{ $t(labelKey) }}</label>
+            <div>{{ $t(labelKey) }}</div>
             <div class="font-semibold">
               {{ user[key] ? $d(user[key]) : "-" }}
             </div>

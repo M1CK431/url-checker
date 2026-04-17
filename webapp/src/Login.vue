@@ -26,7 +26,7 @@
     </div>
 
     <div
-      class="h-full flex items-center justify-center transition-[width] duration-[400ms]"
+      class="h-full flex items-center justify-center transition-[width] duration-400"
       :class="$auth.loading ? 'w-full' : 'w-1/2 xl:w-3/5 2xl:w-2/3'"
     >
       <div>
@@ -47,7 +47,7 @@
     </div>
 
     <div
-      class="relative h-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center transition-[width] duration-[400ms] overflow-hidden"
+      class="relative h-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center transition-[width] duration-400 overflow-hidden"
       :class="$auth.loading ? 'w-0' : 'w-1/2 xl:2/5 2xl:w-1/3'"
     >
       <form @submit.prevent class="grow flex flex-col p-10">

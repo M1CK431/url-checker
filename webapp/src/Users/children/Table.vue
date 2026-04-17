@@ -40,7 +40,7 @@
                   type="primary"
                   @click="deleteUsers([row.id])"
                   :disabled="row.identifier === $auth.user.identifier"
-                  class="hover:!text-red-600 transition-colors"
+                  class="hover:text-red-600! transition-colors"
                 >
                   <RiDeleteBin7Fill />
                 </NButton>
