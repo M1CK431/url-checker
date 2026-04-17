@@ -91,8 +91,8 @@ export const debounce = (fn, delay) => {
 };
 
 export const isAllowedDomain = url =>
-  !allowedDomains[0] ||
-  (isUrl(url) &&
+  isUrl(url) &&
+  (!allowedDomains[0] ||
     allowedDomains.some(domain => new URL(url).hostname.includes(domain)));
 
 export const getPathname = url => new URL(url).pathname;
