@@ -33,10 +33,7 @@ export const login = (identifier, password) => {
       return Object.assign(auth, noTypename(login));
     });
 
-  mutation
-    .then(init)
-    .catch(reset)
-    .finally(() => (auth.loading = false));
+  mutation.then(init).finally(() => (auth.loading = false));
 
   return mutation;
 };
