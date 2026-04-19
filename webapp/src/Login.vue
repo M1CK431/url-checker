@@ -50,7 +50,10 @@
       class="relative h-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center transition-[width] duration-400 overflow-hidden"
       :class="$auth.loading ? 'w-0' : 'w-1/2 xl:2/5 2xl:w-1/3'"
     >
-      <form @submit.prevent class="grow flex flex-col p-10">
+      <form
+        @submit.prevent="login(identifier, password)"
+        class="grow flex flex-col p-10"
+      >
         <h2 class="text-3xl mb-8">{{ $t("CONNEXION") }}</h2>
 
         <NFormItem :label="$t('IDENTIFIER')">
@@ -80,7 +83,6 @@
           type="primary"
           :disabled="!identifier || !password"
           :loading="loading"
-          @click="login(identifier, password)"
           class="self-start mt-2"
         >
           {{ $t("CONNEXION") }}
@@ -96,6 +98,12 @@
 import { login } from "@/plugins/auth.js";
 import { setLocale } from "@/plugins/i18n.js";
 import { error } from "@/helpers.js";
+
+const errors = {
+  "Invalid credentials": "BAD_IDENTIFIER_OR_PASSWORD",
+  "Account disabled": "ACCOUNT_DISABLED",
+  "Cannot create first user": "CANNOT_CREATE_FIRST_USER"
+};
 
 export default {
   setup: () => ({ setLocale }),
@@ -113,7 +121,16 @@ export default {
     login() {
       this.loading = true;
       login(this.identifier, this.password)
-        .catch(() => error({ content: this.$t("BAD_IDENTIFIER_OR_PASSWORD") }))
+        .catch(({ message }) => {
+          // Extract the first sentence as the error message (e.g., "Invalid credentials.")
+          // and any subsequent sentences as the reason if available
+          const [, errorMsg = message, reason] =
+            message.match(/(.+?)\. *(.+)/) ?? [];
+
+          errors[errorMsg]
+            ? error({ content: this.$t(errors[errorMsg]), meta: reason })
+            : error({ content: message });
+        })
         .finally(() => (this.loading = false));
     }
   },
@@ -122,12 +139,16 @@ export default {
       "en-US": {
         LOADING: "Loading",
         CONNEXION: "Connexion",
-        BAD_IDENTIFIER_OR_PASSWORD: "Bad identifier or password"
+        BAD_IDENTIFIER_OR_PASSWORD: "Bad identifier or password",
+        ACCOUNT_DISABLED: "Account disabled",
+        CANNOT_CREATE_FIRST_USER: "Cannot create first user"
       },
       "fr-FR": {
         LOADING: "Chargement",
         CONNEXION: "Connexion",
-        BAD_IDENTIFIER_OR_PASSWORD: "Identifiant ou mot de passe incorrect"
+        BAD_IDENTIFIER_OR_PASSWORD: "Identifiant ou mot de passe incorrect",
+        ACCOUNT_DISABLED: "Compte désactivé",
+        CANNOT_CREATE_FIRST_USER: "Impossible de créer le premier utilisateur"
       }
     }
   }
