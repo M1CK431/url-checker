@@ -8,7 +8,7 @@ const [cmd, ...args] = process.argv.slice(2);
 let { DB_PROVIDER = "sqlite", DB_URL = "file:./db.sqlite" } = process.env;
 
 DB_PROVIDER === "sqlite" &&
-  (DB_URL = `file:${resolve(cwd, DB_URL?.split(":")[1] ?? "")}`);
+(DB_URL = `file:${resolve(cwd, DB_URL?.split(":")[1] ?? "")}`);
 
 const changeDbProvider = async () => {
   for await (const file of glob("src/**/*.prisma", { cwd })) {
@@ -42,25 +42,25 @@ const prismaCLI = (cmd, args) => spawnSync(
 );
 
 switch (cmd) {
-case "generate":
-  await changeDbProvider();
-  prismaCLI(cmd, args);
-  break;
+  case "generate":
+    await changeDbProvider();
+    prismaCLI(cmd, args);
+    break;
 
-case "reset":
-  await changeDbProvider();
+  case "reset":
+    await changeDbProvider();
 
-  // prevent a prisma error on reset while SQLITE WAL mode is enabled
-  DB_PROVIDER === "sqlite" &&
+    // prevent a prisma error on reset while SQLITE WAL mode is enabled
+    DB_PROVIDER === "sqlite" &&
     await Promise.all(
       [DB_URL, `${DB_URL}-shm`, `${DB_URL}-wal`]
         .map(f => unlink(f.split(":")[1]))
     ).catch(() => {});
 
-  prismaCLI("db", ["push", "--force-reset", ...args]);
-  break;
+    prismaCLI("db", ["push", "--force-reset", ...args]);
+    break;
 
-default:
-  prismaCLI(cmd, args);
-  break;
+  default:
+    prismaCLI(cmd, args);
+    break;
 }
