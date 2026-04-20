@@ -1,6 +1,6 @@
 import globals from "globals";
 import js from "@eslint/js";
-import stylisticJs from "@stylistic/eslint-plugin-js";
+import stylistic from "@stylistic/eslint-plugin";
 
 export default [
   { languageOptions: { globals: globals.node } },
@@ -18,10 +18,11 @@ export default [
       ]
     }
   },
-  stylisticJs.configs["all"],
+  stylistic.configs.all,
   {
     rules: Object.entries({
       indent: [2, { offsetTernaryExpressions: true }],
+      "indent-binary-ops": 2,
       "max-len":
         {
           tabWidth: 2,
@@ -68,7 +69,7 @@ export default [
       .reduce(
         (acc, [key, value]) => ({
           ...acc,
-          [`@stylistic/js/${key}`]:
+          [`@stylistic/${key}`]:
             value === "off"
               ? "off"
               : [1, ...Array.isArray(value) ? value : [value]]
