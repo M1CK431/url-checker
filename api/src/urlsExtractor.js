@@ -28,13 +28,12 @@ export const extractUrls = async (url, visited = new Set()) => {
 
   const dom = await new Promise((resolve, reject) => {
     const parser = new Parser(
-      new DomHandler((err, dom) => err ? reject(err) : resolve(dom))
+      new DomHandler((err, dom) => err ? reject(err) : resolve(dom)),
+      { xmlMode: true }
     );
     parser.write(readFileSync(tmpFile, { encoding: "utf8" }));
     parser.end();
-  }).catch(err => {
-    throw new Error(`Parsing error: ${err}`);
-  });
+  }).catch(err => { throw new Error(`Parsing error: ${err}`); });
 
   pExec(`rm ${tmpFile}`);
 
