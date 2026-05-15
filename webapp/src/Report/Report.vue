@@ -278,17 +278,15 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        "{COUNT}_REPORTS": "1 report | {n} reports",
-        "WEBSITE_{HOST}_DELETED": "Website {host} deleted",
-        REPORT_DELETED: "Report deleted"
-      },
-      "fr-FR": {
-        "{COUNT}_REPORTS": "1 rapport | {n} rapports",
-        "WEBSITE_{HOST}_DELETED": "Site {host} supprimé",
-        REPORT_DELETED: "Rapport supprimé"
-      }
+    "en-US": {
+      "{COUNT}_REPORTS": "1 report | {n} reports",
+      "WEBSITE_{HOST}_DELETED": "Website {host} deleted",
+      REPORT_DELETED: "Report deleted"
+    },
+    "fr-FR": {
+      "{COUNT}_REPORTS": "1 rapport | {n} rapports",
+      "WEBSITE_{HOST}_DELETED": "Site {host} supprimé",
+      REPORT_DELETED: "Rapport supprimé"
     }
   }
 };

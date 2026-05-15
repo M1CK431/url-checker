@@ -47,10 +47,8 @@ export default {
   setup: () => ({ renderLabel }),
   data: () => ({ show: false }),
   i18n: {
-    messages: {
-      "en-US": { ALL_URLS: "All URLs" },
-      "fr-FR": { ALL_URLS: "Toutes les URLs" }
-    }
+    "en-US": { ALL_URLS: "All URLs" },
+    "fr-FR": { ALL_URLS: "Toutes les URLs" }
   }
 };
 </script>

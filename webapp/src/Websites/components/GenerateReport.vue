@@ -95,17 +95,15 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        INVALID_URL: "Invalid URL",
-        "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
-          "Allowed domain: {allowedDomains} | Allowed domains: {allowedDomains}"
-      },
-      "fr-FR": {
-        INVALID_URL: "URL invalide",
-        "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
-          "Domaines autorisés: {allowedDomains}"
-      }
+    "en-US": {
+      INVALID_URL: "Invalid URL",
+      "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
+        "Allowed domain: {allowedDomains} | Allowed domains: {allowedDomains}"
+    },
+    "fr-FR": {
+      INVALID_URL: "URL invalide",
+      "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
+        "Domaines autorisés: {allowedDomains}"
     }
   }
 };

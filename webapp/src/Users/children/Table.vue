@@ -73,16 +73,16 @@ export default {
   inheritAttrs: false,
   data: () => ({ selected: [] }),
   computed: {
-    columns: ({ $i18n }) =>
+    columns: ({ $t }) =>
       [
         {
           key: "identifier",
-          name: $i18n.t("IDENTIFIER"),
+          name: $t("IDENTIFIER"),
           className: "w-[15vw]"
         },
-        { key: "enabled", name: $i18n.t("ENABLED") },
-        { key: "createdAt", name: $i18n.t("CREATED_AT") },
-        { key: "lastLogin", name: $i18n.t("LAST_LOGIN") },
+        { key: "enabled", name: $t("ENABLED") },
+        { key: "createdAt", name: $t("CREATED_AT") },
+        { key: "lastLogin", name: $t("LAST_LOGIN") },
         { key: "actions", className: "w-5" }
       ].map(c => ({ ...c, sortable: c.key !== "actions" }))
   },
@@ -91,11 +91,6 @@ export default {
       this.selected = this.selected.filter(({ id }) => !deleted.includes(id));
     }
   },
-  i18n: {
-    messages: {
-      "en-US": { ENABLED: "Enabled" },
-      "fr-FR": { ENABLED: "Activé" }
-    }
-  }
+  i18n: { "en-US": { ENABLED: "Enabled" }, "fr-FR": { ENABLED: "Activé" } }
 };
 </script>

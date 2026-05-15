@@ -56,14 +56,9 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        "{n}_USERS_DELETED": "1 user deleted | {n} users deleted"
-      },
-      "fr-FR": {
-        "{n}_USERS_DELETED":
-          "1 utilisateur supprimé | {n} utilisateurs supprimés"
-      }
+    "en-US": { "{n}_USERS_DELETED": "1 user deleted | {n} users deleted" },
+    "fr-FR": {
+      "{n}_USERS_DELETED": "1 utilisateur supprimé | {n} utilisateurs supprimés"
     }
   }
 };

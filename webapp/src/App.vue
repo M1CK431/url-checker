@@ -192,17 +192,11 @@ export default {
         .toUpperCase()
   },
   i18n: {
-    messages: {
-      "en-US": {
-        MY_PROFILE: "My profile",
-        USERS: "Users",
-        LOGOUT: "Logout"
-      },
-      "fr-FR": {
-        MY_PROFILE: "Mon profil",
-        USERS: "Utilisateurs",
-        LOGOUT: "Déconnexion"
-      }
+    "en-US": { MY_PROFILE: "My profile", USERS: "Users", LOGOUT: "Logout" },
+    "fr-FR": {
+      MY_PROFILE: "Mon profil",
+      USERS: "Utilisateurs",
+      LOGOUT: "Déconnexion"
     }
   }
 };

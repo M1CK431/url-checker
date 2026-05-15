@@ -49,13 +49,9 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        "{n}_REPORT_DELETED": "1 report deleted | {n} reports deleted"
-      },
-      "fr-FR": {
-        "{n}_REPORT_DELETED": "1 rapport supprimé | {n} rapports supprimés"
-      }
+    "en-US": { "{n}_REPORT_DELETED": "1 report deleted | {n} reports deleted" },
+    "fr-FR": {
+      "{n}_REPORT_DELETED": "1 rapport supprimé | {n} rapports supprimés"
     }
   }
 };

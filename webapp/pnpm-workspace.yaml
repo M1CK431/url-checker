@@ -1,3 +1,4 @@
 onlyBuiltDependencies:
   - esbuild
+  - vite-plugin-vue-i18n-sfc-auto-import
   - vite-plugin-vue-tailwind-auto-reference
