@@ -75,6 +75,12 @@
                   icon: renderUserDropdownIcon('users')
                 },
                 {
+                  label: 'Dev tools',
+                  key: '/devtools',
+                  icon: renderUserDropdownIcon('devtools'),
+                  show: !isProdEnv
+                },
+                {
                   label: $t('LOGOUT'),
                   key: '',
                   icon: renderUserDropdownIcon('logout')
@@ -115,10 +121,13 @@ const slate = [600, 700, 800].reduce(
   {}
 );
 
+const isProdEnv = import.meta.env.MODE === "production";
+
 const icons = {
   logout: defineAsyncComponent(() => import("~icons/ri/logout-box-fill")),
   profile: defineAsyncComponent(() => import("~icons/ri/id-card-fill")),
-  users: defineAsyncComponent(() => import("~icons/ri/group-fill"))
+  users: defineAsyncComponent(() => import("~icons/ri/group-fill")),
+  devtools: defineAsyncComponent(() => import("~icons/ri/wrench-fill"))
 };
 
 const renderUserDropdownIcon = icon => () => h(icons[icon]);
@@ -180,7 +189,8 @@ export default {
     theme,
     setLocale,
     logout,
-    renderUserDropdownIcon
+    renderUserDropdownIcon,
+    isProdEnv
   }),
   computed: {
     browserLocale: ({ $i18n }) =>
