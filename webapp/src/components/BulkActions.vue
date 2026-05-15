@@ -34,11 +34,9 @@
 export default {
   props: { modelValue: { type: Array, required: true } },
   i18n: {
-    messages: {
-      "en-US": { "{N}_SELECTED": "{n} selected" },
-      "fr-FR": {
-        "{N}_SELECTED": "0 sélectionné | 1 sélectionné | {n} sélectionnés"
-      }
+    "en-US": { "{N}_SELECTED": "{n} selected" },
+    "fr-FR": {
+      "{N}_SELECTED": "0 sélectionné | 1 sélectionné | {n} sélectionnés"
     }
   }
 };

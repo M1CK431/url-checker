@@ -23,7 +23,7 @@ export default {
   props: { reportId: { type: String, required: true } },
   data: () => ({ exporting: false }),
   computed: {
-    columns: ({ $i18n }) =>
+    columns: ({ $t }) =>
       [
         { key: "url", name: "URL" },
         {
@@ -41,7 +41,7 @@ export default {
         },
         { key: "status", name: "STATUS" },
         { key: "errorReason", name: "ERROR_REASON" }
-      ].map(({ name, ...rest }) => ({ ...rest, name: $i18n.t(name) }))
+      ].map(({ name, ...rest }) => ({ ...rest, name: $t(name) }))
   },
   methods: {
     exportAsCSV() {
@@ -82,15 +82,13 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        DOWNLOAD_AS_CSV: "Download as CSV",
-        ERROR_REASON: "Error reason"
-      },
-      "fr-FR": {
-        DOWNLOAD_AS_CSV: "Télécharger en CSV",
-        ERROR_REASON: "Cause de l'erreur"
-      }
+    "en-US": {
+      DOWNLOAD_AS_CSV: "Download as CSV",
+      ERROR_REASON: "Error reason"
+    },
+    "fr-FR": {
+      DOWNLOAD_AS_CSV: "Télécharger en CSV",
+      ERROR_REASON: "Cause de l'erreur"
     }
   }
 };

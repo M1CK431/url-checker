@@ -216,15 +216,13 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        "{n}_REPORTS": "1 report | {n} reports",
-        "WEBSITE_{host}_DELETED": 'Website "{host}" deleted'
-      },
-      "fr-FR": {
-        "{n}_REPORTS": "1 rapport | {n} rapports",
-        "WEBSITE_{host}_DELETED": 'Site "{host}" supprimé'
-      }
+    "en-US": {
+      "{n}_REPORTS": "1 report | {n} reports",
+      "WEBSITE_{host}_DELETED": 'Website "{host}" deleted'
+    },
+    "fr-FR": {
+      "{n}_REPORTS": "1 rapport | {n} rapports",
+      "WEBSITE_{host}_DELETED": 'Site "{host}" supprimé'
     }
   }
 };

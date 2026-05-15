@@ -135,21 +135,19 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        LOADING: "Loading",
-        CONNEXION: "Connexion",
-        BAD_IDENTIFIER_OR_PASSWORD: "Bad identifier or password",
-        ACCOUNT_DISABLED: "Account disabled",
-        CANNOT_CREATE_FIRST_USER: "Cannot create first user"
-      },
-      "fr-FR": {
-        LOADING: "Chargement",
-        CONNEXION: "Connexion",
-        BAD_IDENTIFIER_OR_PASSWORD: "Identifiant ou mot de passe incorrect",
-        ACCOUNT_DISABLED: "Compte désactivé",
-        CANNOT_CREATE_FIRST_USER: "Impossible de créer le premier utilisateur"
-      }
+    "en-US": {
+      LOADING: "Loading",
+      CONNEXION: "Connexion",
+      BAD_IDENTIFIER_OR_PASSWORD: "Bad identifier or password",
+      ACCOUNT_DISABLED: "Account disabled",
+      CANNOT_CREATE_FIRST_USER: "Cannot create first user"
+    },
+    "fr-FR": {
+      LOADING: "Chargement",
+      CONNEXION: "Connexion",
+      BAD_IDENTIFIER_OR_PASSWORD: "Identifiant ou mot de passe incorrect",
+      ACCOUNT_DISABLED: "Compte désactivé",
+      CANNOT_CREATE_FIRST_USER: "Impossible de créer le premier utilisateur"
     }
   }
 };

@@ -53,13 +53,11 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        "{n}_WEBSITE_DELETED": "1 website deleted | {n} websites deleted"
-      },
-      "fr-FR": {
-        "{n}_WEBSITE_DELETED": "1 site supprimé | {n} sites supprimés"
-      }
+    "en-US": {
+      "{n}_WEBSITE_DELETED": "1 website deleted | {n} websites deleted"
+    },
+    "fr-FR": {
+      "{n}_WEBSITE_DELETED": "1 site supprimé | {n} sites supprimés"
     }
   }
 };

@@ -139,15 +139,10 @@ export default {
     }, 500)
   },
   i18n: {
-    messages: {
-      "en-US": {
-        CREATE: "Create",
-        SEARCH_BY_IDENTIFIER: "Search by identifier"
-      },
-      "fr-FR": {
-        CREATE: "Créer",
-        SEARCH_BY_IDENTIFIER: "Rechercher par identifiant"
-      }
+    "en-US": { CREATE: "Create", SEARCH_BY_IDENTIFIER: "Search by identifier" },
+    "fr-FR": {
+      CREATE: "Créer",
+      SEARCH_BY_IDENTIFIER: "Rechercher par identifiant"
     }
   }
 };

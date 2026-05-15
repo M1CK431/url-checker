@@ -48,17 +48,15 @@ export default {
     );
   },
   i18n: {
-    messages: {
-      "en-US": {
-        HERE_WILL_APPEAR_YOUR_LATEST_REPORTS:
-          "Here will appear your latest reports",
-        REPORT_RESULT_OF_A_SITE_TEST: "Report: result of a site test"
-      },
-      "fr-FR": {
-        HERE_WILL_APPEAR_YOUR_LATEST_REPORTS:
-          "Ici s'afficheront vos derniers rapports",
-        REPORT_RESULT_OF_A_SITE_TEST: "rapport: résultat d'un test de site"
-      }
+    "en-US": {
+      HERE_WILL_APPEAR_YOUR_LATEST_REPORTS:
+        "Here will appear your latest reports",
+      REPORT_RESULT_OF_A_SITE_TEST: "Report: result of a site test"
+    },
+    "fr-FR": {
+      HERE_WILL_APPEAR_YOUR_LATEST_REPORTS:
+        "Ici s'afficheront vos derniers rapports",
+      REPORT_RESULT_OF_A_SITE_TEST: "rapport: résultat d'un test de site"
     }
   }
 };

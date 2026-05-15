@@ -51,7 +51,7 @@
               @click="sortable && sortBy(sortKey, defaultOrder)"
             >
               <slot name="columnName" v-bind="{ key, name }">
-                {{ $t(name) }}
+                {{ name }}
               </slot>
 
               <span
