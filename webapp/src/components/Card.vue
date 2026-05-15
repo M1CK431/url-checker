@@ -18,7 +18,7 @@ export default {
 
 <style>
 .card {
-  @apply rounded-xl shadow-xl bg-gradient-to-br;
+  @apply rounded-xl shadow-xl bg-linear-to-br;
   @apply p-4 ring-1 ring-white/50 backdrop-blur-2xl;
 }
 
