@@ -4,7 +4,7 @@
   <div class="flex gap-10">
     <div class="w-1/4 2xl:w-1/5 shrink-0 space-y-6 text-slate-700 text-base">
       <Card size="sm" class="text-center space-y-2 leading-none">
-        <span>{{ $t("TOTAL_OF_CHECKED_WEBSITES") }}</span>
+        <div>{{ $t("TOTAL_OF_CHECKED_WEBSITES") }}</div>
 
         <div class="font-semibold">
           <NSpin
@@ -16,7 +16,7 @@
       </Card>
 
       <Card size="sm" class="text-center space-y-2 leading-none">
-        <span>{{ $t("TOTAL_OF_GENERATED_REPORTS") }}</span>
+        <div>{{ $t("TOTAL_OF_GENERATED_REPORTS") }}</div>
         <div class="font-semibold">
           <NSpin
             v-if="!reportsCount && $apollo.queries.reportsCount.loading"
@@ -27,7 +27,7 @@
       </Card>
 
       <Card size="sm" class="text-center space-y-2 leading-none">
-        <span>{{ $t("TOTAL_OF_CHECKED_URLS") }}</span>
+        <div>{{ $t("TOTAL_OF_CHECKED_URLS") }}</div>
         <div class="font-semibold">
           <NSpin
             v-if="
@@ -39,7 +39,7 @@
         </div>
       </Card>
 
-      <Illustration class="!mt-16 mx-auto drop-shadow-xl" />
+      <Illustration class="mt-16! mx-auto drop-shadow-xl" />
     </div>
 
     <Error :error="error">
@@ -173,23 +173,21 @@ export default {
     }, 500)
   },
   i18n: {
-    messages: {
-      "en-US": {
-        TOTAL_OF_CHECKED_WEBSITES: "Total of checked websites",
-        TOTAL_OF_GENERATED_REPORTS: "Total of generated reports",
-        TOTAL_OF_CHECKED_URLS: "Total of checked URLs",
-        HERE_WILL_BE_DISPLAY_CHECKED_WEBSITE_LIST:
-          "Here will be displayed checked websites list",
-        SEARCH_BY_SITE_NAME: "Search by site name"
-      },
-      "fr-FR": {
-        TOTAL_OF_CHECKED_WEBSITES: "Total des sites vérifiés",
-        TOTAL_OF_GENERATED_REPORTS: "Total de rapports générés",
-        TOTAL_OF_CHECKED_URLS: "Total d'URL vérifiées",
-        HERE_WILL_BE_DISPLAY_CHECKED_WEBSITE_LIST:
-          "Ici s’affichera la liste des sites testés",
-        SEARCH_BY_SITE_NAME: "Rechercher par nom de site"
-      }
+    "en-US": {
+      TOTAL_OF_CHECKED_WEBSITES: "Total of checked websites",
+      TOTAL_OF_GENERATED_REPORTS: "Total of generated reports",
+      TOTAL_OF_CHECKED_URLS: "Total of checked URLs",
+      HERE_WILL_BE_DISPLAY_CHECKED_WEBSITE_LIST:
+        "Here will be displayed checked websites list",
+      SEARCH_BY_SITE_NAME: "Search by site name"
+    },
+    "fr-FR": {
+      TOTAL_OF_CHECKED_WEBSITES: "Total des sites vérifiés",
+      TOTAL_OF_GENERATED_REPORTS: "Total de rapports générés",
+      TOTAL_OF_CHECKED_URLS: "Total d'URL vérifiées",
+      HERE_WILL_BE_DISPLAY_CHECKED_WEBSITE_LIST:
+        "Ici s'affichera la liste des sites testés",
+      SEARCH_BY_SITE_NAME: "Rechercher par nom de site"
     }
   }
 };

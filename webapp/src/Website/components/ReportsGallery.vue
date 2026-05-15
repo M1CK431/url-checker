@@ -95,25 +95,23 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        SELECT_ALL: "Select all",
-        SORT_BY_DATE: "Sort by date",
-        SORT_BY_STATUS: "Sort by status",
-        ASCENDING: "Ascending",
-        DESCENDING: "Descending",
-        NO_REPORT_CORRESPONDS_TO_YOUR_CRITERIA:
-          "No report corresponds to your criteria"
-      },
-      "fr-FR": {
-        SELECT_ALL: "Sélectionner tout",
-        SORT_BY_DATE: "Trier par date",
-        SORT_BY_STATUS: "Trier par statut",
-        ASCENDING: "Croissant",
-        DESCENDING: "Décroissant",
-        NO_REPORT_CORRESPONDS_TO_YOUR_CRITERIA:
-          "Aucun rapport ne correspond à vos critères"
-      }
+    "en-US": {
+      SELECT_ALL: "Select all",
+      SORT_BY_DATE: "Sort by date",
+      SORT_BY_STATUS: "Sort by status",
+      ASCENDING: "Ascending",
+      DESCENDING: "Descending",
+      NO_REPORT_CORRESPONDS_TO_YOUR_CRITERIA:
+        "No report corresponds to your criteria"
+    },
+    "fr-FR": {
+      SELECT_ALL: "Sélectionner tout",
+      SORT_BY_DATE: "Trier par date",
+      SORT_BY_STATUS: "Trier par statut",
+      ASCENDING: "Croissant",
+      DESCENDING: "Décroissant",
+      NO_REPORT_CORRESPONDS_TO_YOUR_CRITERIA:
+        "Aucun rapport ne correspond à vos critères"
     }
   }
 };

@@ -93,7 +93,7 @@
         </header>
 
         <main
-          class="h-full overflow-auto p-10 pt-[6.5rem]"
+          class="h-full overflow-auto p-10 pt-26"
           v-scroll="() => ctx.onScroll && ctx.onScroll()"
         >
           <RouterView />
@@ -104,11 +104,16 @@
 </template>
 
 <script>
-import { slate } from "tailwindcss/colors";
 import { enUS, dateEnUS, frFR, dateFrFR } from "naive-ui";
 import { setLocale } from "@/plugins/i18n.js";
 import { logout } from "@/plugins/auth.js";
 import Login from "./Login.vue";
+import { getRgbTwColor } from "@/helpers.js";
+
+const slate = [600, 700, 800].reduce(
+  (acc, n) => ((acc[n] = getRgbTwColor("slate", n)), acc),
+  {}
+);
 
 const icons = {
   logout: defineAsyncComponent(() => import("~icons/ri/logout-box-fill")),
@@ -187,17 +192,11 @@ export default {
         .toUpperCase()
   },
   i18n: {
-    messages: {
-      "en-US": {
-        MY_PROFILE: "My profile",
-        USERS: "Users",
-        LOGOUT: "Logout"
-      },
-      "fr-FR": {
-        MY_PROFILE: "Mon profil",
-        USERS: "Utilisateurs",
-        LOGOUT: "Déconnexion"
-      }
+    "en-US": { MY_PROFILE: "My profile", USERS: "Users", LOGOUT: "Logout" },
+    "fr-FR": {
+      MY_PROFILE: "Mon profil",
+      USERS: "Utilisateurs",
+      LOGOUT: "Déconnexion"
     }
   }
 };
@@ -215,7 +214,7 @@ export default {
 header {
   @apply h-14 absolute top-5 inset-x-5 z-10 rounded-xl shadow-xl;
   @apply px-5 flex items-center justify-between ring-1 ring-white/50;
-  @apply bg-gradient-to-b from-white/60 to-white/20 backdrop-blur-2xl;
+  @apply bg-linear-to-b from-white/60 to-white/20 backdrop-blur-2xl;
 }
 
 .switch {

@@ -1,6 +1,7 @@
 import { t } from "@/plugins/i18n.js";
 import { notification } from "@/plugins/naiveUI.js";
 import { allowedDomains } from "@/plugins/allowedDomains.js";
+import twColors from "tailwindcss/colors";
 
 const notificationOptions = { duration: 4500, keepAliveOnHover: true };
 const renderContent = content => () => h("span", { innerHTML: content });
@@ -90,8 +91,8 @@ export const debounce = (fn, delay) => {
 };
 
 export const isAllowedDomain = url =>
-  !allowedDomains[0] ||
-  (isUrl(url) &&
+  isUrl(url) &&
+  (!allowedDomains[0] ||
     allowedDomains.some(domain => new URL(url).hostname.includes(domain)));
 
 export const getPathname = url => new URL(url).pathname;
@@ -123,3 +124,17 @@ export const noTypename = obj => deepCopy(obj, ["__typename"]);
 
 export const getFrom = (obj, keys) =>
   keys.reduce((acc, k) => ((acc[k] = obj[k]), acc), {});
+
+// Derivated from https://gist.github.com/njvack/02ad8efcb0d552b0230d
+const canvas = document.createElement("canvas");
+Object.assign(canvas, { height: 1, width: 1 });
+const canvasCtx = canvas.getContext("2d", { willReadFrequently: true });
+
+export const getRgbTwColor = (color, shade) => {
+  canvasCtx.clearRect(0, 0, 1, 1);
+  canvasCtx.fillStyle = twColors[color][shade];
+  canvasCtx.fillRect(0, 0, 1, 1);
+
+  const [r, g, b, a] = canvasCtx.getImageData(0, 0, 1, 1).data;
+  return `rgba(${r},${g},${b},${a / 255})`;
+};

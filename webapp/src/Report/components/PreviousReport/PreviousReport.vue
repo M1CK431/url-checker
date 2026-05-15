@@ -46,7 +46,7 @@
         class="text-center"
       >
         <div class="flex items-center mb-1">
-          <div class="p-0.5 mr-1.5 bg-slate-500/10 rounded">
+          <div class="p-0.5 mr-1.5 bg-slate-500/10 rounded-sm">
             <RiArrowRightUpLine
               v-if="value > 0"
               :class="{ 'text-red-600': key !== 'totalCount' }"
@@ -105,36 +105,36 @@ export default {
     }
   },
   computed: {
-    kpis: ({ $i18n, $props, previousReport }) =>
+    kpis: ({ $t, $props, previousReport }) =>
       Object.entries(kpis).reduce(
         (acc, [key, labelKey]) => ({
           ...acc,
           [key]: {
             value: $props[key] - previousReport[key],
             get label() {
-              if (!this.value) return $i18n.t(labelKey, 2);
+              if (!this.value) return $t(labelKey, 2);
 
               return `${this.value.toLocaleString(undefined, {
                 signDisplay: "exceptZero"
-              })} ${$i18n.t(labelKey, Math.abs(this.value))}`;
+              })} ${$t(labelKey, Math.abs(this.value))}`;
             }
           }
         }),
         {}
       ),
-    analysis: ({ $i18n, kpis }) => {
+    analysis: ({ $t, kpis }) => {
       if ([3, 4, 5].some(n => kpis[`http${n}xxCount`].value > 0))
         return {
           icon: defineAsyncComponent(() => import("~icons/ri/spam-3-fill")),
           iconClass: "text-red-600",
-          msg: $i18n.t("DEGRADATION_COMPARED_TO")
+          msg: $t("DEGRADATION_COMPARED_TO")
         };
 
       if (kpis.totalCount.value !== 0)
         return {
           icon: defineAsyncComponent(() => import("~icons/ri/question-fill")),
           iconClass: "text-blue-600",
-          msg: $i18n.t("URLS_MODIFIED_COMPARED_TO")
+          msg: $t("URLS_MODIFIED_COMPARED_TO")
         };
 
       if ([3, 4, 5].some(n => kpis[`http${n}xxCount`].value < 0))
@@ -143,7 +143,7 @@ export default {
             () => import("~icons/ri/sparkling-2-fill")
           ),
           iconClass: "text-yellow-600",
-          msg: $i18n.t("IMPROVEMENT_COMPARED_TO")
+          msg: $t("IMPROVEMENT_COMPARED_TO")
         };
 
       return {
@@ -151,44 +151,42 @@ export default {
           () => import("~icons/ri/checkbox-circle-fill")
         ),
         iconClass: "text-green-600",
-        msg: $i18n.t("IDENTICAL_TO")
+        msg: $t("IDENTICAL_TO")
       };
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        WAIT_UNTIL_THE_REPORT_TO_BE_COMPLETED_TO_CONSULT_THE_ANALYSIS:
-          "Wait until the report to be completed to consult the analysis",
-        ANALYSIS_UNAVAILABLE: "Analysis unavailable",
-        THERE_IS_NO_PREVIOUS_REPORT_TO_COMPARE_WITH:
-          "There is no previous report to compare with",
-        URLS: "URL | URL | URLs",
-        REDIRECTIONS: "redirection | redirection | redirections",
-        CLIENT_ERRORS: "client error | client error | client errors",
-        SERVER_ERRORS: "server error | server error | server errors",
-        DEGRADATION_COMPARED_TO: "Degradation compared to",
-        IDENTICAL_TO: "Identical to",
-        URLS_MODIFIED_COMPARED_TO: "URLs modified compared to",
-        IMPROVEMENT_COMPARED_TO: "Improvement compared to",
-        PREVIOUS_REPORT: "previous report"
-      },
-      "fr-FR": {
-        WAIT_UNTIL_THE_REPORT_TO_BE_COMPLETED_TO_CONSULT_THE_ANALYSIS:
-          "Patienter jusqu'à la completion du rapport pour consulter l'analyse",
-        ANALYSIS_UNAVAILABLE: "Analyse indisponible",
-        THERE_IS_NO_PREVIOUS_REPORT_TO_COMPARE_WITH:
-          "Il n’existe aucun rapport précédent avec lequel comparer",
-        URLS: "URL | URL | URLs",
-        REDIRECTIONS: "redirection | redirection | redirections",
-        CLIENT_ERRORS: "erreur client | erreur client | erreurs client",
-        SERVER_ERRORS: "erreur serveur | erreur serveur | erreurs serveur",
-        DEGRADATION_COMPARED_TO: "Dégradation comparé au",
-        IDENTICAL_TO: "Identique au",
-        URLS_MODIFIED_COMPARED_TO: "URLs modifiées comparé au",
-        IMPROVEMENT_COMPARED_TO: "Amélioration comparé au",
-        PREVIOUS_REPORT: "rapport précédent"
-      }
+    "en-US": {
+      WAIT_UNTIL_THE_REPORT_TO_BE_COMPLETED_TO_CONSULT_THE_ANALYSIS:
+        "Wait until the report to be completed to consult the analysis",
+      ANALYSIS_UNAVAILABLE: "Analysis unavailable",
+      THERE_IS_NO_PREVIOUS_REPORT_TO_COMPARE_WITH:
+        "There is no previous report to compare with",
+      URLS: "URL | URL | URLs",
+      REDIRECTIONS: "redirection | redirection | redirections",
+      CLIENT_ERRORS: "client error | client error | client errors",
+      SERVER_ERRORS: "server error | server error | server errors",
+      DEGRADATION_COMPARED_TO: "Degradation compared to",
+      IDENTICAL_TO: "Identical to",
+      URLS_MODIFIED_COMPARED_TO: "URLs modified compared to",
+      IMPROVEMENT_COMPARED_TO: "Improvement compared to",
+      PREVIOUS_REPORT: "previous report"
+    },
+    "fr-FR": {
+      WAIT_UNTIL_THE_REPORT_TO_BE_COMPLETED_TO_CONSULT_THE_ANALYSIS:
+        "Patienter jusqu'à la completion du rapport pour consulter l'analyse",
+      ANALYSIS_UNAVAILABLE: "Analyse indisponible",
+      THERE_IS_NO_PREVIOUS_REPORT_TO_COMPARE_WITH:
+        "Il n’existe aucun rapport précédent avec lequel comparer",
+      URLS: "URL | URL | URLs",
+      REDIRECTIONS: "redirection | redirection | redirections",
+      CLIENT_ERRORS: "erreur client | erreur client | erreurs client",
+      SERVER_ERRORS: "erreur serveur | erreur serveur | erreurs serveur",
+      DEGRADATION_COMPARED_TO: "Dégradation comparé au",
+      IDENTICAL_TO: "Identique au",
+      URLS_MODIFIED_COMPARED_TO: "URLs modifiées comparé au",
+      IMPROVEMENT_COMPARED_TO: "Amélioration comparé au",
+      PREVIOUS_REPORT: "rapport précédent"
     }
   }
 };

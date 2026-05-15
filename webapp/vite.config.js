@@ -7,6 +7,10 @@ import Components from "unplugin-vue-components/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
+import vueI18nSfcAutoimport from "vite-plugin-vue-i18n-sfc-auto-import";
+import tailwindAutoReference from "vite-plugin-vue-tailwind-auto-reference";
+import tailwindcss from "@tailwindcss/vite";
 
 import { disableFragmentWarnings } from "graphql-tag";
 disableFragmentWarnings();
@@ -19,6 +23,8 @@ export default defineConfig({
   server: { port: 8080 },
   plugins: [
     vue(),
+    tailwindAutoReference("./src/assets/tailwind.css"),
+    tailwindcss(),
     graphql(),
     AutoImport({
       imports: [
@@ -43,7 +49,12 @@ export default defineConfig({
       ],
       dts: false
     }),
-    Icons({ compiler: "vue3" })
+    Icons({ compiler: "vue3" }),
+    VueI18nPlugin({
+      include: fileURLToPath(new URL("./src/locales/**", import.meta.url)),
+      strictMessage: false
+    }),
+    vueI18nSfcAutoimport(`import { i18n } from "@/plugins/i18n.js";`)
   ],
   resolve: {
     alias: {

@@ -7,7 +7,7 @@
         params: { ...(website && { host: website.host }), reportId: id }
       })
     "
-    class="w-[21rem] cursor-pointer hover:shadow-2xl hover:bg-white/50 transition-colors"
+    class="w-84 cursor-pointer hover:shadow-2xl hover:bg-white/50 transition-colors"
   >
     <div
       v-if="website"
@@ -87,10 +87,8 @@ export default {
       })
   },
   i18n: {
-    messages: {
-      "en-US": { VERIFIED_URL: "Verified URL" },
-      "fr-FR": { VERIFIED_URL: "URL vérifiées" }
-    }
+    "en-US": { VERIFIED_URL: "Verified URL" },
+    "fr-FR": { VERIFIED_URL: "URLs vérifiées" }
   }
 };
 </script>

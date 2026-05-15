@@ -68,7 +68,7 @@ export default {
   components: { Table, ResponseCode, Status },
   setup: () => ({ sizeFormatter, secondFormatter }),
   computed: {
-    columns: ({ $i18n }) =>
+    columns: ({ $t }) =>
       [
         { key: "url", name: "URL", className: "w-[15vw]" },
         { key: "updatedAt", name: "DATE" },
@@ -78,7 +78,7 @@ export default {
         { key: "duration", name: "DURATION" },
         { key: "status", name: "STATUS" },
         { key: "actions", name: "" }
-      ].map(({ name, ...rest }) => ({ ...rest, name: name && $i18n.t(name) }))
+      ].map(({ name, ...rest }) => ({ ...rest, name: name && $t(name) }))
   }
 };
 </script>

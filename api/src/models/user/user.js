@@ -189,10 +189,10 @@ schemaBuilder.mutationFields(t => ({
         where: { identifier, deleted: false }
       });
       if (!user) throw new GraphQLError("Invalid credentials");
-      if (!user.enabled) throw new GraphQLError("Account disabled");
 
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) throw new GraphQLError("Invalid credentials");
+      if (!user.enabled) throw new GraphQLError("Account disabled");
 
       UserDbModel.update({ data: { lastLogin }, where: { identifier } });
       const token = generateToken(identifier);

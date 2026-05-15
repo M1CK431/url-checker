@@ -81,17 +81,15 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        UNABLE_TO_RETRIEVE_UNAVAILABLE_IDENTIFIERS:
-          "Unable to retrieve unavailable identifiers",
-        IDENTIFIER_NOT_AVAILABLE: "Identifier not available"
-      },
-      "fr-FR": {
-        UNABLE_TO_RETRIEVE_UNAVAILABLE_IDENTIFIERS:
-          "Impossible de récupérer les identifiants indisponibles",
-        IDENTIFIER_NOT_AVAILABLE: "Identifiant non disponible"
-      }
+    "en-US": {
+      UNABLE_TO_RETRIEVE_UNAVAILABLE_IDENTIFIERS:
+        "Unable to retrieve unavailable identifiers",
+      IDENTIFIER_NOT_AVAILABLE: "Identifier not available"
+    },
+    "fr-FR": {
+      UNABLE_TO_RETRIEVE_UNAVAILABLE_IDENTIFIERS:
+        "Impossible de récupérer les identifiants indisponibles",
+      IDENTIFIER_NOT_AVAILABLE: "Identifiant non disponible"
     }
   }
 };

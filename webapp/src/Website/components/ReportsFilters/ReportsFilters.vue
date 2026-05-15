@@ -13,7 +13,7 @@
       </NButton>
     </div>
 
-    <div class="flex gap-4 mb-4">
+    <div class="grid grid-cols-5 gap-4 mb-4">
       <NDatePicker
         :value="filters.updatedAt && filters.updatedAt.map(d => +d)"
         @update:value="
@@ -26,7 +26,6 @@
         type="daterange"
         :actions="null"
         closeOnSelect
-        class="w-1/4"
       />
 
       <PopoverSelectSlider
@@ -43,7 +42,6 @@
         :description="getFilterRangeDescription(key)"
         :selectProps="{
           placeholder,
-          class: 'w-1/4',
           onClear: () => resetFilters(key)
         }"
       />
@@ -120,47 +118,45 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        FILTER_BY: "Filter by",
-        RESET_FILTERS: "Reset filters",
-        CHECKED_URLS_COUNT: "Checked URLs count",
-        ENCOUNTERED_ERRORS_COUNT: "Number of errors encountered",
-        REDIRECTS_COUNT: "Redirections count",
-        CLIENT_ERRORS_COUNT: "Client errors count",
-        SERVER_ERRORS_COUNT: "Server errors count",
-        "CLIENT_ERRORS_(4xx)": "Client errors (4xx)",
-        "SERVER_ERRORS_(5xx)": "Server errors (5xx)",
-        "BETWEEN_{MIN}_AND_{MAX}_CHECKED_URLS":
-          "Between <b>{min}</b> and <b>{max}</b> checked URLs",
-        "BETWEEN_{MIN}_AND_{MAX}_CLIENT_ERRORS_URLS":
-          "Between <b>{min}</b> and <b>{max}</b> client errors URLs",
-        "BETWEEN_{MIN}_AND_{MAX}_SERVER_ERRORS_URLS":
-          "Between <b>{min}</b> and <b>{max}</b> server errors URLs",
-        "BETWEEN_{MIN}_AND_{MAX}_REDIRECTS_URLS":
-          "Between <b>{min}</b> and <b>{max}</b> redirects URLs",
-        SEARCH_BY_SITEMAP_URL: "Search by sitemap URL"
-      },
-      "fr-FR": {
-        FILTER_BY: "Filtrer par",
-        RESET_FILTERS: "Réinitialiser les filtres",
-        CHECKED_URLS_COUNT: "Nombre d'URLs vérifiées",
-        ENCOUNTERED_ERRORS_COUNT: "Nombre d'erreurs rencontrées",
-        REDIRECTS_COUNT: "Nombre de redirections",
-        CLIENT_ERRORS_COUNT: "Nombre d'erreurs client",
-        SERVER_ERRORS_COUNT: "Nombre d'erreurs serveur",
-        "CLIENT_ERRORS_(4xx)": "Erreurs client (4xx)",
-        "SERVER_ERRORS_(5xx)": "Erreurs serveur (5xx)",
-        "BETWEEN_{MIN}_AND_{MAX}_CHECKED_URLS":
-          "Entre <b>{min}</b> et <b>{max}</b> URLs vérifiées",
-        "BETWEEN_{MIN}_AND_{MAX}_CLIENT_ERRORS_URLS":
-          "Entre <b>{min}</b> et <b>{max}</b> URLs en erreurs client",
-        "BETWEEN_{MIN}_AND_{MAX}_SERVER_ERRORS_URLS":
-          "Entre <b>{min}</b> et <b>{max}</b> URLs en erreurs serveur",
-        "BETWEEN_{MIN}_AND_{MAX}_REDIRECTS_URLS":
-          "Entre <b>{min}</b> et <b>{max}</b> URLs redirigées",
-        SEARCH_BY_SITEMAP_URL: "Rechercher par URL de sitemap"
-      }
+    "en-US": {
+      FILTER_BY: "Filter by",
+      RESET_FILTERS: "Reset filters",
+      CHECKED_URLS_COUNT: "Checked URLs count",
+      ENCOUNTERED_ERRORS_COUNT: "Number of errors encountered",
+      REDIRECTS_COUNT: "Redirections count",
+      CLIENT_ERRORS_COUNT: "Client errors count",
+      SERVER_ERRORS_COUNT: "Server errors count",
+      "CLIENT_ERRORS_(4xx)": "Client errors (4xx)",
+      "SERVER_ERRORS_(5xx)": "Server errors (5xx)",
+      "BETWEEN_{MIN}_AND_{MAX}_CHECKED_URLS":
+        "Between <b>{min}</b> and <b>{max}</b> checked URLs",
+      "BETWEEN_{MIN}_AND_{MAX}_CLIENT_ERRORS_URLS":
+        "Between <b>{min}</b> and <b>{max}</b> client errors URLs",
+      "BETWEEN_{MIN}_AND_{MAX}_SERVER_ERRORS_URLS":
+        "Between <b>{min}</b> and <b>{max}</b> server errors URLs",
+      "BETWEEN_{MIN}_AND_{MAX}_REDIRECTS_URLS":
+        "Between <b>{min}</b> and <b>{max}</b> redirects URLs",
+      SEARCH_BY_SITEMAP_URL: "Search by sitemap URL"
+    },
+    "fr-FR": {
+      FILTER_BY: "Filtrer par",
+      RESET_FILTERS: "Réinitialiser les filtres",
+      CHECKED_URLS_COUNT: "Nombre d'URLs vérifiées",
+      ENCOUNTERED_ERRORS_COUNT: "Nombre d'erreurs rencontrées",
+      REDIRECTS_COUNT: "Nombre de redirections",
+      CLIENT_ERRORS_COUNT: "Nombre d'erreurs client",
+      SERVER_ERRORS_COUNT: "Nombre d'erreurs serveur",
+      "CLIENT_ERRORS_(4xx)": "Erreurs client (4xx)",
+      "SERVER_ERRORS_(5xx)": "Erreurs serveur (5xx)",
+      "BETWEEN_{MIN}_AND_{MAX}_CHECKED_URLS":
+        "Entre <b>{min}</b> et <b>{max}</b> URLs vérifiées",
+      "BETWEEN_{MIN}_AND_{MAX}_CLIENT_ERRORS_URLS":
+        "Entre <b>{min}</b> et <b>{max}</b> URLs en erreurs client",
+      "BETWEEN_{MIN}_AND_{MAX}_SERVER_ERRORS_URLS":
+        "Entre <b>{min}</b> et <b>{max}</b> URLs en erreurs serveur",
+      "BETWEEN_{MIN}_AND_{MAX}_REDIRECTS_URLS":
+        "Entre <b>{min}</b> et <b>{max}</b> URLs redirigées",
+      SEARCH_BY_SITEMAP_URL: "Rechercher par URL de sitemap"
     }
   }
 };

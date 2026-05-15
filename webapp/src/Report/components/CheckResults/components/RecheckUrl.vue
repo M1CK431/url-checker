@@ -76,6 +76,6 @@ export default {
 <style>
 .recheck-url-drawer {
   @apply rounded-t-xl mx-5 ring-1 ring-white/50;
-  @apply bg-gradient-to-b from-white/60 to-white/20 backdrop-blur-2xl;
+  @apply bg-linear-to-b from-white/60 to-white/20 backdrop-blur-2xl;
 }
 </style>

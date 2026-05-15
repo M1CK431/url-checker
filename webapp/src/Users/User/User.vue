@@ -69,7 +69,7 @@
             @update:isValid="isPasswordValid = $event"
           />
 
-          <div class="!mt-6 flex gap-2">
+          <div class="mt-6! flex gap-2">
             <NButton
               attrType="submit"
               type="primary"
@@ -102,7 +102,7 @@
             :key
             class="space-y-4"
           >
-            <label>{{ $t(labelKey) }}</label>
+            <div>{{ $t(labelKey) }}</div>
             <div class="font-semibold">
               {{ user[key] ? $d(user[key]) : "-" }}
             </div>
@@ -210,27 +210,25 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        THIS_ACCOUNT_IS_DISABLED: "This account is disabled",
-        UPDATE: "Update",
-        ENABLE: "Enable",
-        DISABLE: "Disable",
-        "USER_{identifier}_UPDATED": 'User "{identifier}" updated',
-        "USER_{identifier}_ENABLED": 'User "{identifier}" enabled',
-        "USER_{identifier}_DISABLED": 'User "{identifier}" disabled',
-        "USER_{identifier}_DELETED": 'User "{identifier}" deleted'
-      },
-      "fr-FR": {
-        THIS_ACCOUNT_IS_DISABLED: "Ce compte est désactivé",
-        UPDATE: "Mettre à jour",
-        ENABLE: "Activer",
-        DISABLE: "Désactiver",
-        "USER_{identifier}_UPDATED": 'Utilisateur "{identifier}" mis à jour',
-        "USER_{identifier}_ENABLED": 'Utilisateur "{identifier}" activé',
-        "USER_{identifier}_DISABLED": 'Utilisateur "{identifier}" désactivé',
-        "USER_{identifier}_DELETED": 'Utilisateur "{identifier}" supprimé'
-      }
+    "en-US": {
+      THIS_ACCOUNT_IS_DISABLED: "This account is disabled",
+      UPDATE: "Update",
+      ENABLE: "Enable",
+      DISABLE: "Disable",
+      "USER_{identifier}_UPDATED": 'User "{identifier}" updated',
+      "USER_{identifier}_ENABLED": 'User "{identifier}" enabled',
+      "USER_{identifier}_DISABLED": 'User "{identifier}" disabled',
+      "USER_{identifier}_DELETED": 'User "{identifier}" deleted'
+    },
+    "fr-FR": {
+      THIS_ACCOUNT_IS_DISABLED: "Ce compte est désactivé",
+      UPDATE: "Mettre à jour",
+      ENABLE: "Activer",
+      DISABLE: "Désactiver",
+      "USER_{identifier}_UPDATED": 'Utilisateur "{identifier}" mis à jour',
+      "USER_{identifier}_ENABLED": 'Utilisateur "{identifier}" activé',
+      "USER_{identifier}_DISABLED": 'Utilisateur "{identifier}" désactivé',
+      "USER_{identifier}_DELETED": 'Utilisateur "{identifier}" supprimé'
     }
   }
 };

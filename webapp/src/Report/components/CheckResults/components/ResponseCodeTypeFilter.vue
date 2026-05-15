@@ -6,7 +6,7 @@
       @click="$emit('update:modelValue', undefined)"
     >
       <span class="font-semibold text-base">{{ $t("ALL") }}</span>
-      <div class="px-1.5 rounded bg-slate-700/20">
+      <div class="px-1.5 rounded-sm bg-slate-700/20">
         {{ report.processedCount }}
       </div>
     </div>
@@ -32,7 +32,7 @@
         :style="{ background: color }"
       />
       <span class="font-semibold text-base">{{ label }}</span>
-      <div class="px-1.5 rounded bg-slate-700/20">
+      <div class="px-1.5 rounded-sm bg-slate-700/20">
         {{ report[`http${key}xxCount`] }}
       </div>
     </div>
@@ -72,7 +72,7 @@ export default {
       }
     }
   },
-  i18n: { messages: { "en-US": { ALL: "All" }, "fr-FR": { ALL: "Tous" } } }
+  i18n: { "en-US": { ALL: "All" }, "fr-FR": { ALL: "Tous" } }
 };
 </script>
 
@@ -84,10 +84,10 @@ export default {
 
 .inactive {
   @apply cursor-pointer hover:bg-white transition-colors;
-  @apply bg-gradient-to-r from-white/80 to-white/40;
+  @apply bg-linear-to-r from-white/80 to-white/40;
 }
 
 .disabled {
-  @apply cursor-not-allowed bg-gradient-to-r from-white/40 to-white/10;
+  @apply cursor-not-allowed bg-linear-to-r from-white/40 to-white/10;
 }
 </style>

@@ -59,7 +59,7 @@
                   type="primary"
                   :disabled="!!row.activeReports.totalCount"
                   @click="deleteWebsites([row.host])"
-                  class="hover:!text-red-600 transition-colors"
+                  class="hover:text-red-600! transition-colors"
                 >
                   <RiDeleteBin7Fill />
                 </NButton>
@@ -91,12 +91,12 @@ export default {
   props: { modelValue: { type: Array, required: true } },
   setup: () => ({ getRoundedPercent }),
   computed: {
-    columns: ({ $i18n }) => [
-      { key: "host", name: $i18n.t("WEBSITE"), className: "w-[15vw]" },
-      { key: "totalReportsCount", name: $i18n.t("NUMBER_OF_REPORTS") },
-      { key: "totalUrlsCount", name: $i18n.t("NUMBER_OF_URLS") },
-      { key: "updatedAt", name: $i18n.t("LAST_CHECK") },
-      { key: "urlErrorPercent", name: $i18n.t("%_URLS_IN_ERROR") },
+    columns: ({ $t }) => [
+      { key: "host", name: $t("WEBSITE"), className: "w-[15vw]" },
+      { key: "totalReportsCount", name: $t("NUMBER_OF_REPORTS") },
+      { key: "totalUrlsCount", name: $t("NUMBER_OF_URLS") },
+      { key: "updatedAt", name: $t("LAST_CHECK") },
+      { key: "urlErrorPercent", name: $t("%_URLS_IN_ERROR") },
       { key: "actions", className: "w-5" }
     ]
   },
@@ -109,21 +109,19 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        WEBSITE: "Website",
-        NUMBER_OF_REPORTS: "Nbr of reports",
-        NUMBER_OF_URLS: "Nbr of URLs",
-        LAST_CHECK: "Last check",
-        "%_URLS_IN_ERROR": "% URLs with error"
-      },
-      "fr-FR": {
-        WEBSITE: "Site",
-        NUMBER_OF_REPORTS: "Nbr de rapports",
-        NUMBER_OF_URLS: "Nbr d'URLs",
-        LAST_CHECK: "Dernière vérification",
-        "%_URLS_IN_ERROR": "% URLs en erreur"
-      }
+    "en-US": {
+      WEBSITE: "Website",
+      NUMBER_OF_REPORTS: "Nbr of reports",
+      NUMBER_OF_URLS: "Nbr of URLs",
+      LAST_CHECK: "Last check",
+      "%_URLS_IN_ERROR": "% URLs with error"
+    },
+    "fr-FR": {
+      WEBSITE: "Site",
+      NUMBER_OF_REPORTS: "Nbr de rapports",
+      NUMBER_OF_URLS: "Nbr d'URLs",
+      LAST_CHECK: "Dernière vérification",
+      "%_URLS_IN_ERROR": "% URLs en erreur"
     }
   }
 };
