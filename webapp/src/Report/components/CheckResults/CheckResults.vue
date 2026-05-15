@@ -176,7 +176,7 @@ export default {
     recheckUrl: ""
   }),
   computed: {
-    columns: ({ $i18n }) =>
+    columns: ({ $t }) =>
       [
         { key: "url", name: "URL", className: "w-[15vw]" },
         { key: "updatedAt", name: "DATE" },
@@ -188,7 +188,7 @@ export default {
         { key: "actions", name: "" }
       ].map(({ name, ...rest }) => ({
         ...rest,
-        name: name && $i18n.t(name),
+        name: name && $t(name),
         sortable: !!name
       })),
     isConfigured: ({ search, checkResults, sort, filters }) =>
@@ -250,17 +250,15 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        SEARCH_BY_URL: "Search by URL",
-        ALL: "All",
-        NO_URL_FOUND: "No URL found"
-      },
-      "fr-FR": {
-        SEARCH_BY_URL: "Rechercher par URL",
-        ALL: "Tous",
-        NO_URL_FOUND: "Aucune URL trouvée"
-      }
+    "en-US": {
+      SEARCH_BY_URL: "Search by URL",
+      ALL: "All",
+      NO_URL_FOUND: "No URL found"
+    },
+    "fr-FR": {
+      SEARCH_BY_URL: "Rechercher par URL",
+      ALL: "Tous",
+      NO_URL_FOUND: "Aucune URL trouvée"
     }
   }
 };

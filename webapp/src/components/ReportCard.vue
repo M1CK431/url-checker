@@ -87,10 +87,8 @@ export default {
       })
   },
   i18n: {
-    messages: {
-      "en-US": { VERIFIED_URL: "Verified URL" },
-      "fr-FR": { VERIFIED_URL: "URL vérifiées" }
-    }
+    "en-US": { VERIFIED_URL: "Verified URL" },
+    "fr-FR": { VERIFIED_URL: "URLs vérifiées" }
   }
 };
 </script>

@@ -17,27 +17,25 @@
 export default {
   props: { status: { type: String, required: true }, errorReason: String },
   computed: {
-    statuses: ({ $i18n }) => ({
-      PENDING: { label: $i18n.t("PENDING"), class: "bg-slate-500" },
-      PROCESSING: { label: $i18n.t("PROCESSING"), class: "bg-blue-700" },
-      ERROR: { label: $i18n.t("ERROR"), class: "bg-red-600" },
-      DONE: { label: $i18n.t("DONE"), class: "bg-green-600" }
+    statuses: ({ $t }) => ({
+      PENDING: { label: $t("PENDING"), class: "bg-slate-500" },
+      PROCESSING: { label: $t("PROCESSING"), class: "bg-blue-700" },
+      ERROR: { label: $t("ERROR"), class: "bg-red-600" },
+      DONE: { label: $t("DONE"), class: "bg-green-600" }
     })
   },
   i18n: {
-    messages: {
-      "en-US": {
-        PENDING: "Pending",
-        PROCESSING: "Processing",
-        ERROR: "Error",
-        DONE: "Done"
-      },
-      "fr-FR": {
-        PENDING: "En attente",
-        PROCESSING: "En cours",
-        ERROR: "Erreur",
-        DONE: "Terminé"
-      }
+    "en-US": {
+      PENDING: "Pending",
+      PROCESSING: "Processing",
+      ERROR: "Error",
+      DONE: "Done"
+    },
+    "fr-FR": {
+      PENDING: "En attente",
+      PROCESSING: "En cours",
+      ERROR: "Erreur",
+      DONE: "Terminé"
     }
   }
 };

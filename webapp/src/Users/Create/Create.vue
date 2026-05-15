@@ -115,19 +115,17 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        NEW_USER: "New user",
-        ENABLED: "Enabled",
-        CREATE: "Create",
-        "USER_{identifier}_CREATED": "User {identifier} created"
-      },
-      "fr-FR": {
-        NEW_USER: "Nouvel utilisateur",
-        ENABLED: "Actif",
-        CREATE: "Créer",
-        "USER_{identifier}_CREATED": "Utilisateur {identifier} créé"
-      }
+    "en-US": {
+      NEW_USER: "New user",
+      ENABLED: "Enabled",
+      CREATE: "Create",
+      "USER_{identifier}_CREATED": "User {identifier} created"
+    },
+    "fr-FR": {
+      NEW_USER: "Nouvel utilisateur",
+      ENABLED: "Actif",
+      CREATE: "Créer",
+      "USER_{identifier}_CREATED": "Utilisateur {identifier} créé"
     }
   }
 };

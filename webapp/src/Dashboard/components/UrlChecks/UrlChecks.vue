@@ -152,27 +152,25 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": {
-        TEST_AN_URL: "Test an URL",
-        COPY_URL: "Copy URL",
-        HERE_WILL_BE_DISPLAYED_THE_RESULTS_OF_YOUR_LAST_URL_TESTS:
-          "Here will be displayed the results of your last URL tests",
-        LAST_CHECKED_URL: "Last checked URL",
-        INVALID_URL: "Invalid URL",
-        "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
-          "Allowed domain: {allowedDomains} | Allowed domains: {allowedDomains}"
-      },
-      "fr-FR": {
-        TEST_AN_URL: "Tester une URL",
-        COPY_URL: "Copier l'URL",
-        HERE_WILL_BE_DISPLAYED_THE_RESULTS_OF_YOUR_LAST_URL_TESTS:
-          " Ici s'afficheront les résultats de vos derniers tests d'URL",
-        LAST_CHECKED_URL: "Dernières URL testées",
-        INVALID_URL: "URL invalide",
-        "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
-          "Domaines autorisés: {allowedDomains}"
-      }
+    "en-US": {
+      TEST_AN_URL: "Test an URL",
+      COPY_URL: "Copy URL",
+      HERE_WILL_BE_DISPLAYED_THE_RESULTS_OF_YOUR_LAST_URL_TESTS:
+        "Here will be displayed the results of your last URL tests",
+      LAST_CHECKED_URL: "Last checked URL",
+      INVALID_URL: "Invalid URL",
+      "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
+        "Allowed domain: {allowedDomains} | Allowed domains: {allowedDomains}"
+    },
+    "fr-FR": {
+      TEST_AN_URL: "Tester une URL",
+      COPY_URL: "Copier l'URL",
+      HERE_WILL_BE_DISPLAYED_THE_RESULTS_OF_YOUR_LAST_URL_TESTS:
+        " Ici s'afficheront les résultats de vos derniers tests d'URL",
+      LAST_CHECKED_URL: "Dernières URL testées",
+      INVALID_URL: "URL invalide",
+      "ALLOWED_DOMAINS_{ALLOWED_DOMAINS}":
+        "Domaines autorisés: {allowedDomains}"
     }
   }
 };

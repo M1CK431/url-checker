@@ -104,10 +104,8 @@ export default {
     }
   },
   i18n: {
-    messages: {
-      "en-US": { SELECT_A_SITEMAP: "Select a sitemap" },
-      "fr-FR": { SELECT_A_SITEMAP: "Sélectionner un sitemap" }
-    }
+    "en-US": { SELECT_A_SITEMAP: "Select a sitemap" },
+    "fr-FR": { SELECT_A_SITEMAP: "Sélectionner un sitemap" }
   }
 };
 </script>

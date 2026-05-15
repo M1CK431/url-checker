@@ -1,23 +1,22 @@
 import { createI18n } from "vue-i18n";
-import enUS from "@/locales/en-US.json";
-import frFR from "@/locales/fr-FR.json";
+import messages from "@intlify/unplugin-vue-i18n/messages";
 import { userPrefs } from "./userPrefs.js";
 
 const datetimeFormats = {
   short: { dateStyle: "short", timeStyle: "short" }
 };
 
-const i18n = createI18n({
+export const i18n = createI18n({
+  legacy: false,
   datetimeFormats: { "en-US": datetimeFormats, "fr-FR": datetimeFormats },
-  messages: { "en-US": enUS, "fr-FR": frFR },
+  messages,
   locale: userPrefs.locale || navigator.language,
   fallbackLocale: "en-US",
-  silentFallbackWarn: true,
-  silentTranslationWarn: true,
-  warnHtmlInMessage: "off"
+  fallbackWarn: false,
+  warnHtmlMessage: false
 });
 
-export const { n, rt, t, tc, te, tm } = i18n.global;
+export const { n, rt, t, te, tm } = i18n.global;
 
 export const d = (date = new Date(), format = "short") =>
   i18n.global.d(new Date(date), format);

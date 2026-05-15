@@ -72,7 +72,7 @@ export default {
       }
     }
   },
-  i18n: { messages: { "en-US": { ALL: "All" }, "fr-FR": { ALL: "Tous" } } }
+  i18n: { "en-US": { ALL: "All" }, "fr-FR": { ALL: "Tous" } }
 };
 </script>
 
